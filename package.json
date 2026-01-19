@@ -1,0 +1,40 @@
+{
+  "name": "superline-monorepo",
+  "private": true,
+  "packageManager": "yarn@4.10.3",
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ]
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo run typecheck --filter=...",
+    "format": "prettier --write .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx,md,css,scss,json,yml,yaml}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^8.0.0",
+    "prettier": "^3.0.0",
+    "turbo": "^2.3.4"
+  },
+  "dependencies": {
+    "@mui/icons-material": "^7.3.4"
+  }
+}

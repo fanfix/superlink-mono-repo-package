@@ -1,0 +1,35 @@
+{
+  "fonts": [
+    {
+      "name": "Inter",
+      "value": "Inter",
+      "family": "Inter, sans-serif"
+    },
+    {
+      "name": "Rubik",
+      "value": "Rubik",
+      "family": "Rubik, sans-serif"
+    },
+    {
+      "name": "Merriweather",
+      "value": "Merriweather",
+      "family": "Merriweather, serif"
+    },
+    {
+      "name": "Roboto Slab",
+      "value": "Roboto Slab",
+      "family": "'Roboto Slab', serif"
+    },
+    {
+      "name": "Montserrat",
+      "value": "Montserrat",
+      "family": "Montserrat, sans-serif"
+    },
+    {
+      "name": "EB Garamond",
+      "value": "EB Garamond",
+      "family": "'EB Garamond', serif"
+    }
+  ]
+}
+

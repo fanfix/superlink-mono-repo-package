@@ -1,0 +1,75 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+.pnp.cjs
+.pnp.loader.mjs
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.turbo/
+storybook-static/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Production
+*.tsbuildinfo
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+debug-storybook.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Vercel
+.vercel
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Package manager locks (keep yarn.lock at root, but ignore individual app locks)
+# apps/*/yarn.lock
+# packages/*/yarn.lock
+
+# Misc
+*.pem
+.eslintcache
