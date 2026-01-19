@@ -1,0 +1,44 @@
+@import "tailwindcss";
+@import "@superline/design-system/theme.css";
+:root {
+  --background: #f5f5f5;
+  --foreground: #171717;
+  
+  /* Revenue Card specific variables */
+  --revenue-card-bg: #f7f7f7;
+  
+  /* Header specific variables */
+  
+  --height-header: 64px;
+  --width-sidebar: 218px;
+  
+  /* Modal specific variables */
+  --modal-backdrop-bg: rgba(0, 0, 0, 0.1);
+  --modal-shadow: 0px 8px 32px rgba(0, 0, 0, 0.12);
+  --modal-border-radius: 12px;
+  
+  /* Avatar specific variables */
+  --avatar-size-sm: 40px;
+  --avatar-size-md: 48px;
+  --status-dot-size: 12px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
