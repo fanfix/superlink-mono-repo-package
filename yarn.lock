@@ -8867,6 +8867,10 @@ __metadata:
     husky: "npm:^8.0.0"
     prettier: "npm:^3.0.0"
     turbo: "npm:^2.3.4"
+  peerDependencies:
+    "@mui/material": ^7.3.7
+    react: ^19.1.1
+    react-dom: ^19.1.1
   languageName: unknown
   linkType: soft
 
