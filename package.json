@@ -33,13 +33,5 @@
     "husky": "^8.0.0",
     "prettier": "^3.0.0",
     "turbo": "^2.3.4"
-  },
-  "dependencies": {
-    "@mui/icons-material": "^7.3.4"
-  },
-  "peerDependencies": {
-    "@mui/material": "^7.3.7",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1"
   }
 }
