@@ -1,0 +1,152 @@
+steps:
+  # Build Admin Docker image (includes design-system package)
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-admin'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/admin:${SHORT_SHA}'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/admin:latest'
+      - '-f'
+      - 'apps/admin/Dockerfile'
+      - '.'
+
+  # Build Agency Docker image (includes design-system package)
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-agency'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/agency:${SHORT_SHA}'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/agency:latest'
+      - '-f'
+      - 'apps/agency/Dockerfile'
+      - '.'
+
+  # Build Client Docker image (includes design-system package)
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-client'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/client:${SHORT_SHA}'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/client:latest'
+      - '-f'
+      - 'apps/client/Dockerfile'
+      - '.'
+
+  # Push Admin Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-admin'
+    waitFor: ['build-admin']
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'gcr.io/$PROJECT_ID/admin'
+
+  # Push Agency Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-agency'
+    waitFor: ['build-agency']
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'gcr.io/$PROJECT_ID/agency'
+
+  # Push Client Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-client'
+    waitFor: ['build-client']
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'gcr.io/$PROJECT_ID/client'
+
+  # Deploy Admin to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-admin'
+    entrypoint: gcloud
+    waitFor: ['push-admin']
+    args:
+      - 'run'
+      - 'deploy'
+      - 'admin'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/admin:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '3000'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '10'
+      - '--quiet'
+
+  # Deploy Agency to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-agency'
+    entrypoint: gcloud
+    waitFor: ['push-agency']
+    args:
+      - 'run'
+      - 'deploy'
+      - 'agency'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/agency:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '3000'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '10'
+      - '--quiet'
+
+  # Deploy Client to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-client'
+    entrypoint: gcloud
+    waitFor: ['push-client']
+    args:
+      - 'run'
+      - 'deploy'
+      - 'client'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/client:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '3000'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '10'
+      - '--quiet'
+
+substitutions:
+  _REGION: us-central1
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
