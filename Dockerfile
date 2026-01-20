@@ -29,7 +29,7 @@ COPY apps/${BUILD_SERVICE}/package.json ./apps/${BUILD_SERVICE}/
 COPY packages/design-system/package.json ./packages/design-system/
 
 # Install dependencies
-RUN yarn install --frozen-lockfile
+RUN yarn install --immutable
 
 # Rebuild the source code only when needed
 FROM base AS builder

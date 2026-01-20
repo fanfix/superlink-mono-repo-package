@@ -17,7 +17,7 @@ COPY apps/admin/package.json ./apps/admin/
 COPY packages/design-system/package.json ./packages/design-system/
 
 # Install dependencies
-RUN yarn install --frozen-lockfile
+RUN yarn install --immutable
 
 # Rebuild the source code only when needed
 FROM base AS builder

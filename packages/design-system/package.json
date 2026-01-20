@@ -21,16 +21,16 @@
   "peerDependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.2",
-    "@mui/material": "^7.3.2",
+    "@mui/icons-material": "^7.3.7",
+    "@mui/material": "^7.3.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.2",
-    "@mui/material": "^7.3.2",
+    "@mui/icons-material": "^7.3.7",
+    "@mui/material": "^7.3.7",
     "@storybook/addon-docs": "^9.1.9",
     "@storybook/addon-themes": "^9.1.9",
     "@storybook/react": "^9.1.9",
