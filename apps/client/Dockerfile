@@ -10,7 +10,7 @@ RUN corepack enable && corepack prepare yarn@4.10.3 --activate
 
 # Copy root package files
 COPY package.json yarn.lock* .yarnrc.yml ./
-COPY .yarn ./.yarn
+# Note: .yarn directory is optional with enableGlobalCache: true in .yarnrc.yml
 
 # Copy workspace package files
 COPY apps/client/package.json ./apps/client/
@@ -27,7 +27,7 @@ WORKDIR /app
 RUN corepack enable && corepack prepare yarn@4.10.3 --activate
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/.yarn ./.yarn
+# .yarn directory not needed with global cache enabled
 
 # Copy project files
 COPY . .
