@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, Suspense } from 'react';
 import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { Button, Typography } from '@superline/design-system';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -11,7 +11,7 @@ import { setAuthToken, getAuthToken } from '../../lib/auth';
 import { redirectIfAuthenticated } from '../../lib/authGuard';
 import Loader from '../../components/Loader';
 
-export default function OTPVerifyPage() {
+function OTPVerifyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const theme = useTheme();
@@ -562,6 +562,14 @@ export default function OTPVerifyPage() {
         </Button>
       </Box>
     </AuthLayout>
+  );
+}
+
+export default function OTPVerifyPage() {
+  return (
+    <Suspense fallback={<Loader fullScreen={true} />}>
+      <OTPVerifyContent />
+    </Suspense>
   );
 }
 

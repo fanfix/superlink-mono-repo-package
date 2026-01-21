@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, Suspense } from 'react';
 import { Box, Modal } from '@mui/material';
 import {
   Typography,
@@ -23,7 +23,7 @@ import { Team } from '../../../../api/types';
 
 const DEFAULT_AVATAR = '/assets/default-avatar.svg';
 
-export default function TeamMemberDetailPage() {
+function TeamMemberDetailContent() {
   const router = useRouter();
   const params = useParams();
   const { agencyId } = useAuth();
@@ -1077,5 +1077,13 @@ export default function TeamMemberDetailPage() {
         onClose={() => setToastState(prev => ({ ...prev, visible: false }))}
       />
     </Box>
+  );
+}
+
+export default function TeamMemberDetailPage() {
+  return (
+    <Suspense fallback={<Loader fullScreen={true} />}>
+      <TeamMemberDetailContent />
+    </Suspense>
   );
 }

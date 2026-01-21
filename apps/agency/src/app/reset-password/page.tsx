@@ -2,13 +2,13 @@
 
 import { Button, TextField, Typography, Card, Toast } from '@superline/design-system';
 import { Box, Stack } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ROUTES } from '../../config/routes';
 import { useAuth } from '../../contexts/AuthContext';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -346,5 +346,23 @@ export default function ResetPasswordPage() {
         sx={{ textAlign: 'center' }}
       />
     </Box>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <Box sx={{
+        minHeight: '100vh',
+        backgroundColor: 'var(--color-white-sidebar)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <Typography variant="text-sm">Loading...</Typography>
+      </Box>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

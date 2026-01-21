@@ -13,7 +13,7 @@ const columns = [
 ];
 
 const BrandKitLeadsTable = () => {
-  const { fetchLeads, loading, error } = useBrandLeadsApi();
+  const { fetchLeads } = useBrandLeadsApi();
   const [leads, setLeads] = useState<BrandLead[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -55,12 +55,12 @@ const BrandKitLeadsTable = () => {
     setPage(0);
   };
 
-  if (loading && leads.length === 0) {
+  if (fetchLeads.loading && leads.length === 0) {
     return <div>Loading brand leads...</div>;
   }
 
-  if (error) {
-    return <div>Error loading brand leads: {error.message}</div>;
+  if (fetchLeads.error) {
+    return <div>Error loading brand leads: {fetchLeads.error.message}</div>;
   }
 
   return (

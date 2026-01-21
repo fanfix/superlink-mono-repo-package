@@ -17,7 +17,7 @@ const columns = [
 ];
 
 const SubscriptionsTable = () => {
-  const { fetchSubscriptions, loading, error } = useSubscriptionsApi();
+  const { fetchSubscriptions } = useSubscriptionsApi();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -62,12 +62,12 @@ const SubscriptionsTable = () => {
     setPage(0);
   };
 
-  if (loading && subscriptions.length === 0) {
+  if (fetchSubscriptions.loading && subscriptions.length === 0) {
     return <div>Loading subscriptions...</div>;
   }
 
-  if (error) {
-    return <div>Error loading subscriptions: {error.message}</div>;
+  if (fetchSubscriptions.error) {
+    return <div>Error loading subscriptions: {fetchSubscriptions.error.message}</div>;
   }
 
   return (

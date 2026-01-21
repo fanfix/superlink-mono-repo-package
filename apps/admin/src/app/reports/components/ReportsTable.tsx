@@ -15,7 +15,7 @@ const columns = [
 ];
 
 const ReportsTable = () => {
-  const { fetchReports, loading, error } = useReportsApi();
+  const { fetchReports } = useReportsApi();
   const [reports, setReports] = useState<Report[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -60,12 +60,12 @@ const ReportsTable = () => {
     setPage(0);
   };
 
-  if (loading && reports.length === 0) {
+  if (fetchReports.loading && reports.length === 0) {
     return <div>Loading reports...</div>;
   }
 
-  if (error) {
-    return <div>Error loading reports: {error.message}</div>;
+  if (fetchReports.error) {
+    return <div>Error loading reports: {fetchReports.error.message}</div>;
   }
 
   return (

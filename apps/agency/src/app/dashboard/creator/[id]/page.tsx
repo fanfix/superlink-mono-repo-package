@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { Box, Modal } from '@mui/material';
 import { Typography, Card, Button, Image, Toast, Loader } from '@superline/design-system';
 
@@ -121,7 +121,7 @@ const SuperLinkLogo = styled(Image)({
 });
 
 
-export default function CreatorDetailPage() {
+function CreatorDetailContent() {
   const router = useRouter();
   const params = useParams();
   const { agencyId } = useAuth();
@@ -850,5 +850,13 @@ export default function CreatorDetailPage() {
         onClose={() => setToastState(prev => ({ ...prev, visible: false }))}
       />
     </PageContainer>
+  );
+}
+
+export default function CreatorDetailPage() {
+  return (
+    <Suspense fallback={<Loader fullScreen={true} />}>
+      <CreatorDetailContent />
+    </Suspense>
   );
 }

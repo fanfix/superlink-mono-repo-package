@@ -24,7 +24,7 @@ const columns = [
 ];
 
 export default function SuperlockedsPage() {
-  const { fetchUsers, loading, error } = useSuperlockedApi();
+  const { fetchUsers } = useSuperlockedApi();
   const [users, setUsers] = useState<any[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -75,10 +75,10 @@ export default function SuperlockedsPage() {
         <p>Manage superlocked content and features. Control access to premium content.</p>
         
         <Box sx={{ marginTop: '24px' }}>
-          {loading && users.length === 0 ? (
+          {fetchUsers.loading && users.length === 0 ? (
             <div>Loading users with unlock content...</div>
-          ) : error ? (
-            <div>Error loading users: {error.message}</div>
+          ) : fetchUsers.error ? (
+            <div>Error loading users: {fetchUsers.error.message}</div>
           ) : (
             <Table
               columns={columns}

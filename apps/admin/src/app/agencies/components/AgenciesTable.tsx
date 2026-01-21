@@ -14,7 +14,7 @@ const columns = [
 ];
 
 const AgenciesTable = () => {
-  const { fetchAgencies, loading, error } = useAgenciesApi();
+  const { fetchAgencies } = useAgenciesApi();
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -58,12 +58,12 @@ const AgenciesTable = () => {
     setPage(0);
   };
 
-  if (loading && agencies.length === 0) {
+  if (fetchAgencies.loading && agencies.length === 0) {
     return <div>Loading agencies...</div>;
   }
 
-  if (error) {
-    return <div>Error loading agencies: {error.message}</div>;
+  if (fetchAgencies.error) {
+    return <div>Error loading agencies: {fetchAgencies.error.message}</div>;
   }
 
   return (

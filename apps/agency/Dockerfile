@@ -1,73 +1,95 @@
-FROM node:20-alpine AS base
+# ===============================
+# Agency App Dockerfile
+# Optimized for independent builds
+# ===============================
 
-# Install dependencies only when needed
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
+# -------------------------------
+# Base image with Node + Corepack
+# -------------------------------
+FROM node:20-bullseye-slim AS base
+
+# Set working directory
 WORKDIR /app
 
-# Enable Corepack for Yarn
-RUN corepack enable && corepack prepare yarn@4.10.3 --activate
+# Install required system packages
+RUN apt-get update && apt-get install -y \
+    bash \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Enable Corepack with retry logic (fixes network timeout issues)
+RUN corepack enable || true
+RUN for i in 1 2 3 4 5; do \
+    corepack prepare yarn@stable --activate && break || \
+    (echo "Attempt $i failed, retrying..." && sleep $((i * 2))); \
+    done
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# -------------------------------
+# Dependencies stage
+# -------------------------------
+FROM base AS deps
 
 # Copy root package files
 COPY package.json yarn.lock* .yarnrc.yml ./
-# Note: .yarn directory is optional with enableGlobalCache: true in .yarnrc.yml
 
-# Copy workspace package files (all apps needed for proper workspace resolution)
+# Copy workspace package.json files (needed for workspaces)
 COPY apps/admin/package.json ./apps/admin/
 COPY apps/agency/package.json ./apps/agency/
 COPY apps/client/package.json ./apps/client/
 COPY packages/design-system/package.json ./packages/design-system/
 
-# Install dependencies
+# Install dependencies using Yarn v4 (immutable for reproducible builds)
 RUN yarn install --immutable
 
-# Rebuild the source code only when needed
+# -------------------------------
+# Builder stage
+# -------------------------------
 FROM base AS builder
+
 WORKDIR /app
 
-# Enable Corepack
-RUN corepack enable && corepack prepare yarn@4.10.3 --activate
-
+# Copy dependencies from previous stage
 COPY --from=deps /app/node_modules ./node_modules
-# .yarn directory not needed with global cache enabled
 
-# Copy project files
+# Copy full project
 COPY . .
 
 # Build design-system first (dependency)
 RUN yarn workspace @superline/design-system build
 
 # Build agency app
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN yarn workspace @superline/agency build
 
-# Production image, copy all the files and run next
+# -------------------------------
+# Production image
+# -------------------------------
 FROM base AS runner
+
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create non-root user
+RUN groupadd --gid 1001 nodejs \
+ && useradd --uid 1001 --gid 1001 --shell /bin/bash nextjs
 
 # Copy built files from builder
 COPY --from=builder /app/apps/agency/public ./apps/agency/public
-
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/apps/agency/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/agency/.next/static ./apps/agency/.next/static
+
+# Prepare .next folder for prerender cache
+RUN mkdir .next \
+ && chown nextjs:nodejs .next
 
 USER nextjs
 
 EXPOSE 3000
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-
+# Start the agency service
 CMD ["node", "apps/agency/server.js"]

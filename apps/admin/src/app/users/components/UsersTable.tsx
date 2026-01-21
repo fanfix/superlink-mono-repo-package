@@ -15,7 +15,7 @@ const columns = [
 ];
 
 const UsersTable = () => {
-  const { fetchUsers, loading, error } = useUsersApi();
+  const { fetchUsers } = useUsersApi();
   const [users, setUsers] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -60,12 +60,12 @@ const UsersTable = () => {
     setPage(0);
   };
 
-  if (loading && users.length === 0) {
+  if (fetchUsers.loading && users.length === 0) {
     return <div>Loading users...</div>;
   }
 
-  if (error) {
-    return <div>Error loading users: {error.message}</div>;
+  if (fetchUsers.error) {
+    return <div>Error loading users: {fetchUsers.error.message}</div>;
   }
 
   return (

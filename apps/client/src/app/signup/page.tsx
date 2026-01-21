@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useLayoutEffect } from 'react';
+import React, { useState, useLayoutEffect, Suspense } from 'react';
 import { Box } from '@mui/material';
 import { Button, Typography } from '@superline/design-system';
 import PhoneInput from 'react-phone-number-input';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import AuthLayout from '../../components/AuthLayout';
 import { getRecaptchaTokenForSendOTP } from '../../utils/recaptcha';
 import { useSendOTP } from '../../hooks/useAuthApi';
@@ -14,9 +14,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { redirectIfAuthenticated } from '../../lib/authGuard';
 import Loader from '../../components/Loader';
 
-export default function SignUpPage() {
+function SignUpContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { execute: sendOTP, loading: sendOTPLoading } = useSendOTP();
   const { isAuthenticated, isLoading, userState, currentUser } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState<string>('');
@@ -320,6 +319,14 @@ export default function SignUpPage() {
         </Typography>
       </Box>
     </AuthLayout>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<Loader fullScreen={true} />}>
+      <SignUpContent />
+    </Suspense>
   );
 }
 

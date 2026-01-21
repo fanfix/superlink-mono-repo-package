@@ -15,7 +15,7 @@ const columns = [
 ];
 
 const BiosTable = () => {
-  const { fetchBios, loading, error } = useBiosApi();
+  const { fetchBios } = useBiosApi();
   const [bios, setBios] = useState<Bio[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -60,12 +60,12 @@ const BiosTable = () => {
     setPage(0);
   };
 
-  if (loading && bios.length === 0) {
+  if (fetchBios.loading && bios.length === 0) {
     return <div>Loading bios...</div>;
   }
 
-  if (error) {
-    return <div>Error loading bios: {error.message}</div>;
+  if (fetchBios.error) {
+    return <div>Error loading bios: {fetchBios.error.message}</div>;
   }
 
   return (
