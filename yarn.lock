@@ -1280,22 +1280,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/icons-material@npm:^7.3.4":
-  version: 7.3.4
-  resolution: "@mui/icons-material@npm:7.3.4"
-  dependencies:
-    "@babel/runtime": "npm:^7.28.4"
-  peerDependencies:
-    "@mui/material": ^7.3.4
-    "@types/react": ^17.0.0 || ^18.0.0 || ^19.0.0
-    react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 10/0c41f27152f530b5eb9a93f614f3f86f14933bb2bc3e5e447def9258ab636d49dd5694c3c29910bb1c74fae4a813c26c6f9e426b6021222d9fe2a18c42210b96
-  languageName: node
-  linkType: hard
-
 "@mui/icons-material@npm:^7.3.6, @mui/icons-material@npm:^7.3.7":
   version: 7.3.7
   resolution: "@mui/icons-material@npm:7.3.7"
@@ -8861,16 +8845,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "superline-monorepo@workspace:."
   dependencies:
-    "@mui/icons-material": "npm:^7.3.4"
     "@types/node": "npm:^20.0.0"
     cz-conventional-changelog: "npm:^3.3.0"
     husky: "npm:^8.0.0"
     prettier: "npm:^3.0.0"
     turbo: "npm:^2.3.4"
-  peerDependencies:
-    "@mui/material": ^7.3.7
-    react: ^19.1.1
-    react-dom: ^19.1.1
   languageName: unknown
   linkType: soft
 
