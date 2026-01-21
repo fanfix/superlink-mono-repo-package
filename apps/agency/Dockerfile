@@ -94,4 +94,5 @@ ENV HOSTNAME="0.0.0.0"
 EXPOSE 8080
 
 # Start the agency service
-CMD ["node", "apps/agency/server.js"]
+# Use sh -c to ensure PORT env var is properly passed
+CMD ["sh", "-c", "node apps/agency/server.js"]

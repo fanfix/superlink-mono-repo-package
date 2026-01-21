@@ -94,5 +94,6 @@
     EXPOSE 8080
     
     # Start the built service
-    CMD ["node", "apps/${BUILD_SERVICE}/server.js"]
+    # Use sh -c to ensure PORT env var is properly passed
+    CMD ["sh", "-c", "node apps/${BUILD_SERVICE}/server.js"]
     

@@ -94,4 +94,5 @@ ENV HOSTNAME="0.0.0.0"
 EXPOSE 8080
 
 # Start the admin service
-CMD ["node", "apps/admin/server.js"]
+# Use sh -c to ensure PORT env var is properly passed
+CMD ["sh", "-c", "node apps/admin/server.js"]

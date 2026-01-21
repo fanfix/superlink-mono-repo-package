@@ -89,6 +89,9 @@ steps:
       - '1'
       - '--max-instances'
       - '10'
+      - '--timeout'
+      - '300'
+      - '--startup-cpu-boost'
       - '--quiet'
 
   # Deploy Agency to Cloud Run
@@ -115,6 +118,9 @@ steps:
       - '1'
       - '--max-instances'
       - '10'
+      - '--timeout'
+      - '300'
+      - '--startup-cpu-boost'
       - '--quiet'
 
   # Deploy Client to Cloud Run
@@ -141,6 +147,9 @@ steps:
       - '1'
       - '--max-instances'
       - '10'
+      - '--timeout'
+      - '300'
+      - '--startup-cpu-boost'
       - '--quiet'
 
 substitutions:

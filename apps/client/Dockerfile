@@ -94,4 +94,5 @@ ENV HOSTNAME="0.0.0.0"
 EXPOSE 8080
 
 # Start the client service
-CMD ["node", "apps/client/server.js"]
+# Use sh -c to ensure PORT env var is properly passed
+CMD ["sh", "-c", "node apps/client/server.js"]
