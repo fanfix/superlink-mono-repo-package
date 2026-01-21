@@ -24,8 +24,10 @@ COPY package.json yarn.lock* .yarnrc.yml ./
 # If .yarn directory exists and is needed, uncomment the line below:
 # COPY .yarn ./.yarn
 
-# Copy workspace package files
-COPY apps/${BUILD_SERVICE}/package.json ./apps/${BUILD_SERVICE}/
+# Copy workspace package files (all apps needed for proper workspace resolution)
+COPY apps/admin/package.json ./apps/admin/
+COPY apps/agency/package.json ./apps/agency/
+COPY apps/client/package.json ./apps/client/
 COPY packages/design-system/package.json ./packages/design-system/
 
 # Install dependencies

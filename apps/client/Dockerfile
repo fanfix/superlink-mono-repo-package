@@ -12,7 +12,9 @@ RUN corepack enable && corepack prepare yarn@4.10.3 --activate
 COPY package.json yarn.lock* .yarnrc.yml ./
 # Note: .yarn directory is optional with enableGlobalCache: true in .yarnrc.yml
 
-# Copy workspace package files
+# Copy workspace package files (all apps needed for proper workspace resolution)
+COPY apps/admin/package.json ./apps/admin/
+COPY apps/agency/package.json ./apps/agency/
 COPY apps/client/package.json ./apps/client/
 COPY packages/design-system/package.json ./packages/design-system/
 
