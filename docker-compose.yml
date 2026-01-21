@@ -5,7 +5,7 @@ services:
       dockerfile: apps/admin/Dockerfile
     container_name: superline-admin
     ports:
-      - "3001:3000"
+      - "3001:8080"
     restart: unless-stopped
 
   client:
@@ -14,7 +14,7 @@ services:
       dockerfile: apps/client/Dockerfile
     container_name: superline-client
     ports:
-      - "3002:3000"
+      - "3002:8080"
     restart: unless-stopped
 
   agency:
@@ -23,5 +23,5 @@ services:
       dockerfile: apps/agency/Dockerfile
     container_name: superline-agency
     ports:
-      - "3003:3000"
+      - "3003:8080"
     restart: unless-stopped

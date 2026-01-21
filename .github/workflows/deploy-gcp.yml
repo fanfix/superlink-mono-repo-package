@@ -83,7 +83,7 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --port 3000 \
+            --port 8080 \
             --memory 512Mi \
             --cpu 1 \
             --max-instances 10 \
@@ -129,7 +129,7 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --port 3000 \
+            --port 8080 \
             --memory 512Mi \
             --cpu 1 \
             --max-instances 10 \
@@ -175,7 +175,7 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --port 3000 \
+            --port 8080 \
             --memory 512Mi \
             --cpu 1 \
             --max-instances 10 \
