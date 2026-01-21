@@ -87,9 +87,11 @@
     
     USER nextjs
     
-    EXPOSE 3000
-    ENV PORT=3000
+    # Cloud Run provides PORT env var (defaults to 8080)
+    # Next.js standalone server automatically uses process.env.PORT
+    ENV PORT=8080
     ENV HOSTNAME="0.0.0.0"
+    EXPOSE 8080
     
     # Start the built service
     CMD ["node", "apps/${BUILD_SERVICE}/server.js"]
