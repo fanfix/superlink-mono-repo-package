@@ -95,4 +95,4 @@ EXPOSE 8080
 
 # Start the agency service
 # Use sh -c to ensure PORT env var is properly passed
-CMD ["sh", "-c", "node apps/agency/server.js"]
+CMD ["node", "server.js"]

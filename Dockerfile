@@ -95,5 +95,5 @@
     
     # Start the built service
     # Use sh -c to ensure PORT env var is properly passed
-    CMD ["sh", "-c", "node apps/${BUILD_SERVICE}/server.js"]
+    CMD ["node", "server.js"]
     
