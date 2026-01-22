@@ -1,4 +1,4 @@
-name: Deploy to GCP Cloud Run
+name: Trigger GCP Cloud Build
 
 on:
   push:
@@ -13,11 +13,6 @@ on:
       - '.github/**'
   workflow_dispatch:
 
-env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-  REGION: us-central1
-
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
@@ -25,7 +20,6 @@ jobs:
       admin: ${{ steps.filter.outputs.admin }}
       agency: ${{ steps.filter.outputs.agency }}
       client: ${{ steps.filter.outputs.client }}
-      design-system: ${{ steps.filter.outputs.design-system }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,143 +39,26 @@ jobs:
             client:
               - 'apps/client/**'
               - 'packages/design-system/**'
-            design-system:
-              - 'packages/design-system/**'
 
-  deploy-admin:
+  notify-cloud-build:
     needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.admin == 'true' }}
+    if: |
+      needs.detect-changes.outputs.admin == 'true' ||
+      needs.detect-changes.outputs.agency == 'true' ||
+      needs.detect-changes.outputs.client == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Configure Docker for GCR
-        run: gcloud auth configure-docker
-
-      - name: Build and Push Admin Docker Image
+      - name: Cloud Build Auto-Trigger
         run: |
-          docker build -t gcr.io/$PROJECT_ID/admin:latest -f apps/admin/Dockerfile .
-          docker push gcr.io/$PROJECT_ID/admin:latest
-
-      - name: Deploy Admin to Cloud Run
-        run: |
-          gcloud run deploy admin \
-            --image gcr.io/$PROJECT_ID/admin:latest \
-            --region ${{ env.REGION }} \
-            --platform managed \
-            --allow-unauthenticated \
-            --port 8080 \
-            --memory 512Mi \
-            --cpu 1 \
-            --max-instances 10 \
-            --quiet
-
-      - name: Get Service URL
-        run: |
-          echo "✅ Admin deployed successfully!"
-          echo "URL: $(gcloud run services describe admin --region=${{ env.REGION }} --format='value(status.url)')"
-
-  deploy-agency:
-    needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.agency == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Configure Docker for GCR
-        run: gcloud auth configure-docker
-
-      - name: Build and Push Agency Docker Image
-        run: |
-          docker build -t gcr.io/$PROJECT_ID/agency:latest -f apps/agency/Dockerfile .
-          docker push gcr.io/$PROJECT_ID/agency:latest
-
-      - name: Deploy Agency to Cloud Run
-        run: |
-          gcloud run deploy agency \
-            --image gcr.io/$PROJECT_ID/agency:latest \
-            --region ${{ env.REGION }} \
-            --platform managed \
-            --allow-unauthenticated \
-            --port 8080 \
-            --memory 512Mi \
-            --cpu 1 \
-            --max-instances 10 \
-            --quiet
-
-      - name: Get Service URL
-        run: |
-          echo "✅ Agency deployed successfully!"
-          echo "URL: $(gcloud run services describe agency --region=${{ env.REGION }} --format='value(status.url)')"
-
-  deploy-client:
-    needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.client == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Configure Docker for GCR
-        run: gcloud auth configure-docker
-
-      - name: Build and Push Client Docker Image
-        run: |
-          docker build -t gcr.io/$PROJECT_ID/client:latest -f apps/client/Dockerfile .
-          docker push gcr.io/$PROJECT_ID/client:latest
-
-      - name: Deploy Client to Cloud Run
-        run: |
-          gcloud run deploy client \
-            --image gcr.io/$PROJECT_ID/client:latest \
-            --region ${{ env.REGION }} \
-            --platform managed \
-            --allow-unauthenticated \
-            --port 8080 \
-            --memory 512Mi \
-            --cpu 1 \
-            --max-instances 10 \
-            --quiet
-
-      - name: Get Service URL
-        run: |
-          echo "✅ Client deployed successfully!"
-          echo "URL: $(gcloud run services describe client --region=${{ env.REGION }} --format='value(status.url)')"
+          echo "✅ GitHub push event detected"
+          echo "📦 Changed services:"
+          echo "   - Admin: ${{ needs.detect-changes.outputs.admin }}"
+          echo "   - Agency: ${{ needs.detect-changes.outputs.agency }}"
+          echo "   - Client: ${{ needs.detect-changes.outputs.client }}"
+          echo ""
+          echo "🚀 GCP Cloud Build triggers are configured to auto-trigger on push"
+          echo "📊 Check build status at: https://console.cloud.google.com/cloud-build/builds"
+          echo ""
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "✅ GitHub Actions check passed - Cloud Build will handle deployment"
