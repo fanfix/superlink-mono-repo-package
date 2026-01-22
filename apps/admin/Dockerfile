@@ -94,5 +94,7 @@ ENV HOSTNAME="0.0.0.0"
 EXPOSE 8080
 
 # Start the admin service safely with explicit PORT
+# Standalone output structure: .next/standalone/apps/admin/server.js
+# After COPY standalone to /app, server.js is at /app/apps/admin/server.js
 # sh -c ensures env vars properly expand, PORT=${PORT:-8080} provides fallback
-CMD ["sh", "-c", "PORT=${PORT:-8080} node server.js"]
+CMD ["sh", "-c", "PORT=${PORT:-8080} node apps/admin/server.js"]

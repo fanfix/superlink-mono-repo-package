@@ -87,6 +87,9 @@
     
     USER nextjs
     
+    # Convert ARG to ENV so BUILD_SERVICE is available at runtime for CMD
+    ENV BUILD_SERVICE=${BUILD_SERVICE}
+    
     # Cloud Run provides PORT env var (defaults to 8080)
     # Next.js standalone server automatically uses process.env.PORT
     ENV PORT=8080
@@ -94,6 +97,8 @@
     EXPOSE 8080
     
     # Start the built service safely with explicit PORT
+    # Standalone output structure: .next/standalone/apps/${BUILD_SERVICE}/server.js
+    # After COPY standalone to /app, server.js is at /app/apps/${BUILD_SERVICE}/server.js
     # sh -c ensures env vars properly expand, PORT=${PORT:-8080} provides fallback
-    CMD ["sh", "-c", "PORT=${PORT:-8080} node server.js"]
+    CMD ["sh", "-c", "PORT=${PORT:-8080} node apps/${BUILD_SERVICE}/server.js"]
     
