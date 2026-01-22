@@ -93,6 +93,6 @@ ENV PORT=8080
 ENV HOSTNAME="0.0.0.0"
 EXPOSE 8080
 
-# Start the admin service
-# Use sh -c to ensure PORT env var is properly passed
-CMD ["node", "server.js"]
+# Start the admin service safely with explicit PORT
+# sh -c ensures env vars properly expand, PORT=${PORT:-8080} provides fallback
+CMD ["sh", "-c", "PORT=${PORT:-8080} node server.js"]

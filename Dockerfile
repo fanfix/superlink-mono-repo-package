@@ -93,7 +93,7 @@
     ENV HOSTNAME="0.0.0.0"
     EXPOSE 8080
     
-    # Start the built service
-    # Use sh -c to ensure PORT env var is properly passed
-    CMD ["node", "server.js"]
+    # Start the built service safely with explicit PORT
+    # sh -c ensures env vars properly expand, PORT=${PORT:-8080} provides fallback
+    CMD ["sh", "-c", "PORT=${PORT:-8080} node server.js"]
     
