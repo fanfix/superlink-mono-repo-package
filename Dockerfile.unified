@@ -1,0 +1,114 @@
+# ===============================
+# Unified Dockerfile
+# Builds all three apps (admin, agency, client) and runs them via router
+# ===============================
+
+# -------------------------------
+# Base image with Node + Corepack
+# -------------------------------
+FROM node:20-bullseye-slim AS base
+
+# Set working directory
+WORKDIR /app
+
+# Install required system packages
+RUN apt-get update && apt-get install -y \
+    bash \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Enable Corepack and prepare Yarn (stable v4)
+RUN corepack enable \
+ && corepack prepare yarn@stable --activate
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# -------------------------------
+# Dependencies stage
+# -------------------------------
+FROM base AS deps
+
+# Copy root package files
+COPY package.json yarn.lock* .yarnrc.yml ./
+
+# Copy workspace package.json files (needed for workspaces)
+COPY apps/admin/package.json ./apps/admin/
+COPY apps/agency/package.json ./apps/agency/
+COPY apps/client/package.json ./apps/client/
+COPY packages/design-system/package.json ./packages/design-system/
+
+# Install dependencies using Yarn v4 (immutable for reproducible builds)
+RUN yarn install --immutable
+
+# -------------------------------
+# Builder stage
+# -------------------------------
+FROM base AS builder
+
+WORKDIR /app
+
+# Copy dependencies from previous stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy full project
+COPY . .
+
+# Build design-system first (dependency for all apps)
+RUN yarn workspace @superline/design-system build
+
+# Build all three apps
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN yarn workspace @superline/admin build && \
+    yarn workspace @superline/agency build && \
+    yarn workspace @superline/client build
+
+# -------------------------------
+# Production image
+# -------------------------------
+FROM base AS runner
+
+WORKDIR /app
+
+# Create non-root user
+RUN groupadd --gid 1001 nodejs \
+ && useradd --uid 1001 --gid 1001 --shell /bin/bash nextjs
+
+# Copy built files from builder for all three apps
+# Next.js standalone output: .next/standalone contains the minimal server files
+# Each standalone includes apps/{service}/server.js and shared node_modules
+
+# Copy all public directories
+COPY --from=builder /app/apps/admin/public ./apps/admin/public
+COPY --from=builder /app/apps/agency/public ./apps/agency/public
+COPY --from=builder /app/apps/client/public ./apps/client/public
+
+# Copy standalone outputs (they will merge, with later ones taking precedence for shared files)
+# Each standalone contains apps/{service}/server.js and necessary node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/standalone/. ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/agency/.next/standalone/. ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/client/.next/standalone/. ./
+
+# Copy static files for each app
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/static ./apps/admin/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/agency/.next/static ./apps/agency/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/client/.next/static ./apps/client/.next/static
+
+# Copy router script
+COPY --chown=nextjs:nodejs router.js ./
+
+# Prepare .next folders for prerender cache
+RUN mkdir -p apps/admin/.next apps/agency/.next apps/client/.next \
+ && chown -R nextjs:nodejs apps/
+
+USER nextjs
+
+# Cloud Run provides PORT env var (defaults to 8080)
+ENV PORT=8080
+ENV HOSTNAME="0.0.0.0"
+EXPOSE 8080
+
+# Start the router server which will start all three apps
+CMD ["node", "router.js"]
+
