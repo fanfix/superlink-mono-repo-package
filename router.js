@@ -111,55 +111,7 @@ const waitForServer = (port, name, maxAttempts = 60) => {
   });
 };
 
-// Wait for all servers to be ready
-Promise.all([
-  waitForServer(ADMIN_PORT, 'Admin').catch(err => {
-    console.error('Admin server failed to start:', err);
-    process.exit(1);
-  }),
-  waitForServer(AGENCY_PORT, 'Agency').catch(err => {
-    console.error('Agency server failed to start:', err);
-    process.exit(1);
-  }),
-  waitForServer(CLIENT_PORT, 'Client').catch(err => {
-    console.error('Client server failed to start:', err);
-    process.exit(1);
-  })
-]).then(() => {
-  console.log('All servers ready, starting router on port', PORT);
-}).catch(err => {
-  console.error('Failed to start all servers:', err);
-  process.exit(1);
-});
-
-// Simple HTTP proxy function
-const proxyRequest = (req, res, targetPort, customPath = null) => {
-  const options = {
-    hostname: '127.0.0.1',
-    port: targetPort,
-    path: customPath !== null ? customPath : req.url,
-    method: req.method,
-    headers: { ...req.headers }
-  };
-
-  // Remove host header to avoid issues
-  delete options.headers.host;
-
-  const proxyReq = http.request(options, (proxyRes) => {
-    res.writeHead(proxyRes.statusCode, proxyRes.headers);
-    proxyRes.pipe(res);
-  });
-
-  proxyReq.on('error', (err) => {
-    console.error(`Proxy error: ${err.message}`);
-    res.writeHead(502, { 'Content-Type': 'text/plain' });
-    res.end('Bad Gateway');
-  });
-
-  req.pipe(proxyReq);
-};
-
-// Main router server
+// Main router server - create it but don't start listening yet
 const server = http.createServer((req, res) => {
   const url = req.url || '/';
   
@@ -194,12 +146,61 @@ const server = http.createServer((req, res) => {
   }
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Router server listening on port ${PORT}`);
-  console.log(`Admin: http://localhost:${PORT}/admin`);
-  console.log(`Agency: http://localhost:${PORT}/agency`);
-  console.log(`Client: http://localhost:${PORT}/`);
+// Wait for all servers to be ready before starting the router
+Promise.all([
+  waitForServer(ADMIN_PORT, 'Admin').catch(err => {
+    console.error('Admin server failed to start:', err);
+    process.exit(1);
+  }),
+  waitForServer(AGENCY_PORT, 'Agency').catch(err => {
+    console.error('Agency server failed to start:', err);
+    process.exit(1);
+  }),
+  waitForServer(CLIENT_PORT, 'Client').catch(err => {
+    console.error('Client server failed to start:', err);
+    process.exit(1);
+  })
+]).then(() => {
+  console.log('All servers ready, starting router on port', PORT);
+  // Only start listening after all servers are ready
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Router server listening on port ${PORT}`);
+    console.log(`Admin: http://localhost:${PORT}/admin`);
+    console.log(`Agency: http://localhost:${PORT}/agency`);
+    console.log(`Client: http://localhost:${PORT}/`);
+  });
+}).catch(err => {
+  console.error('Failed to start all servers:', err);
+  process.exit(1);
 });
+
+// Simple HTTP proxy function
+const proxyRequest = (req, res, targetPort, customPath = null) => {
+  const options = {
+    hostname: '127.0.0.1',
+    port: targetPort,
+    path: customPath !== null ? customPath : req.url,
+    method: req.method,
+    headers: { ...req.headers }
+  };
+
+  // Remove host header to avoid issues
+  delete options.headers.host;
+
+  const proxyReq = http.request(options, (proxyRes) => {
+    res.writeHead(proxyRes.statusCode, proxyRes.headers);
+    proxyRes.pipe(res);
+  });
+
+  proxyReq.on('error', (err) => {
+    console.error(`Proxy error: ${err.message}`);
+    res.writeHead(502, { 'Content-Type': 'text/plain' });
+    res.end('Bad Gateway');
+  });
+
+  req.pipe(proxyReq);
+};
+
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
