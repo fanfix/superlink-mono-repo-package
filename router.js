@@ -12,61 +12,96 @@
 const http = require('http');
 const { spawn } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
 const PORT = process.env.PORT || 8080;
 const ADMIN_PORT = 3001;
 const AGENCY_PORT = 3002;
 const CLIENT_PORT = 3003;
 
+// Helper to start a server with error handling
+const startServer = (name, serverPath, port) => {
+  console.log(`Starting ${name} server at ${serverPath} on port ${port}...`);
+  
+  // Check if server file exists
+  if (!fs.existsSync(serverPath)) {
+    console.error(`ERROR: ${name} server file not found at ${serverPath}`);
+    console.error(`Current working directory: ${__dirname}`);
+    console.error(`Looking for: ${path.resolve(serverPath)}`);
+    process.exit(1);
+  }
+  
+  console.log(`✓ ${name} server file found`);
+  
+  const server = spawn('node', [serverPath], {
+    env: { ...process.env, PORT: port, HOSTNAME: '127.0.0.1' },
+    cwd: __dirname,
+    stdio: 'inherit'
+  });
+
+  server.on('error', (err) => {
+    console.error(`Failed to start ${name} server:`, err);
+    process.exit(1);
+  });
+
+  server.on('exit', (code, signal) => {
+    if (code !== 0 && code !== null) {
+      console.error(`${name} server exited with code ${code} and signal ${signal}`);
+      process.exit(1);
+    }
+  });
+
+  return server;
+};
+
 // Start admin server (standalone structure: apps/admin/server.js)
-const adminServer = spawn('node', [
-  path.join(__dirname, 'apps', 'admin', 'server.js')
-], {
-  env: { ...process.env, PORT: ADMIN_PORT, HOSTNAME: '127.0.0.1' },
-  cwd: __dirname,
-  stdio: 'inherit'
-});
+const adminServerPath = path.join(__dirname, 'apps', 'admin', 'server.js');
+console.log(`Admin server path: ${adminServerPath}`);
+const adminServer = startServer('Admin', adminServerPath, ADMIN_PORT);
 
 // Start agency server (standalone structure: apps/agency/server.js)
-const agencyServer = spawn('node', [
-  path.join(__dirname, 'apps', 'agency', 'server.js')
-], {
-  env: { ...process.env, PORT: AGENCY_PORT, HOSTNAME: '127.0.0.1' },
-  cwd: __dirname,
-  stdio: 'inherit'
-});
+const agencyServerPath = path.join(__dirname, 'apps', 'agency', 'server.js');
+console.log(`Agency server path: ${agencyServerPath}`);
+const agencyServer = startServer('Agency', agencyServerPath, AGENCY_PORT);
 
 // Start client server (standalone structure: apps/client/server.js)
-const clientServer = spawn('node', [
-  path.join(__dirname, 'apps', 'client', 'server.js')
-], {
-  env: { ...process.env, PORT: CLIENT_PORT, HOSTNAME: '127.0.0.1' },
-  cwd: __dirname,
-  stdio: 'inherit'
-});
+const clientServerPath = path.join(__dirname, 'apps', 'client', 'server.js');
+console.log(`Client server path: ${clientServerPath}`);
+const clientServer = startServer('Client', clientServerPath, CLIENT_PORT);
 
-// Wait for servers to be ready
-const waitForServer = (port, name) => {
-  return new Promise((resolve) => {
+// Wait for servers to be ready with timeout
+const waitForServer = (port, name, maxAttempts = 60) => {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
     const checkServer = () => {
+      attempts++;
+      if (attempts > maxAttempts) {
+        console.error(`Timeout waiting for ${name} server on port ${port}`);
+        reject(new Error(`Timeout waiting for ${name} server`));
+        return;
+      }
+
       const req = http.request({
         hostname: '127.0.0.1',
         port: port,
         path: '/',
         method: 'GET',
-        timeout: 1000
+        timeout: 2000
       }, () => {
-        console.log(`✓ ${name} server ready on port ${port}`);
+        console.log(`✓ ${name} server ready on port ${port} (attempt ${attempts})`);
         resolve();
       });
       
       req.on('error', () => {
-        setTimeout(checkServer, 500);
+        if (attempts % 10 === 0) {
+          console.log(`Waiting for ${name} server... (attempt ${attempts}/${maxAttempts})`);
+        }
+        setTimeout(checkServer, 1000);
       });
       
       req.on('timeout', () => {
         req.destroy();
-        setTimeout(checkServer, 500);
+        setTimeout(checkServer, 1000);
       });
       
       req.end();
@@ -78,11 +113,23 @@ const waitForServer = (port, name) => {
 
 // Wait for all servers to be ready
 Promise.all([
-  waitForServer(ADMIN_PORT, 'Admin'),
-  waitForServer(AGENCY_PORT, 'Agency'),
-  waitForServer(CLIENT_PORT, 'Client')
+  waitForServer(ADMIN_PORT, 'Admin').catch(err => {
+    console.error('Admin server failed to start:', err);
+    process.exit(1);
+  }),
+  waitForServer(AGENCY_PORT, 'Agency').catch(err => {
+    console.error('Agency server failed to start:', err);
+    process.exit(1);
+  }),
+  waitForServer(CLIENT_PORT, 'Client').catch(err => {
+    console.error('Client server failed to start:', err);
+    process.exit(1);
+  })
 ]).then(() => {
   console.log('All servers ready, starting router on port', PORT);
+}).catch(err => {
+  console.error('Failed to start all servers:', err);
+  process.exit(1);
 });
 
 // Simple HTTP proxy function
