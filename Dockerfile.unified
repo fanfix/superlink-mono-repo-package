@@ -58,11 +58,14 @@ COPY . .
 # Build design-system first (dependency for all apps)
 RUN yarn workspace @superline/design-system build
 
-# Build all three apps
+# Build all three apps with basePath configured
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN yarn workspace @superline/admin build && \
-    yarn workspace @superline/agency build && \
-    yarn workspace @superline/client build
+# Build admin with /admin basePath
+RUN NEXT_PUBLIC_BASE_PATH=/admin yarn workspace @superline/admin build
+# Build agency with /agency basePath
+RUN NEXT_PUBLIC_BASE_PATH=/agency yarn workspace @superline/agency build
+# Build client with root basePath (empty)
+RUN NEXT_PUBLIC_BASE_PATH= yarn workspace @superline/client build
 
 # -------------------------------
 # Production image

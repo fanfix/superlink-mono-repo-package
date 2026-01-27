@@ -116,7 +116,8 @@ const proxyRequest = (req, res, targetPort, customPath = null) => {
 const server = http.createServer((req, res) => {
   const url = req.url || '/';
   
-  // Route /admin/* to admin app (strip /admin prefix so app thinks it's at root)
+  // Route /admin/* to admin app
+  // Admin app is built with basePath=/admin, so it expects /admin prefix
   // Also handle /admin (without trailing slash) -> redirect to /admin/
   if (url.startsWith('/admin')) {
     // Handle exact /admin -> redirect to /admin/
@@ -125,10 +126,11 @@ const server = http.createServer((req, res) => {
       res.end();
       return;
     }
-    const adminPath = url.replace(/^\/admin/, '') || '/';
-    proxyRequest(req, res, ADMIN_PORT, adminPath);
+    // Admin app expects /admin prefix, so pass the full path
+    proxyRequest(req, res, ADMIN_PORT, url);
   }
-  // Route /agency/* to agency app (strip /agency prefix)
+  // Route /agency/* to agency app
+  // Agency app is built with basePath=/agency, so it expects /agency prefix
   else if (url.startsWith('/agency')) {
     // Handle exact /agency -> redirect to /agency/
     if (url === '/agency') {
@@ -136,8 +138,8 @@ const server = http.createServer((req, res) => {
       res.end();
       return;
     }
-    const agencyPath = url.replace(/^\/agency/, '') || '/';
-    proxyRequest(req, res, AGENCY_PORT, agencyPath);
+    // Agency app expects /agency prefix, so pass the full path
+    proxyRequest(req, res, AGENCY_PORT, url);
   }
   // Route everything else to client app
   else {
