@@ -175,6 +175,7 @@ export const sendOTPApi = async (payload: SendOTPRequest): Promise<SendOTPRespon
     // Log the exact payload being sent
     console.log('Send OTP Payload:', JSON.stringify(payload, null, 2));
     console.log('Send OTP Endpoint:', `${restClient.defaults.baseURL}${AUTH_ENDPOINTS.SEND_OTP}`);
+    console.log('Current origin:', typeof window !== 'undefined' ? window.location.origin : 'N/A');
     
     const response = await restClient.post<SendOTPResponse>(AUTH_ENDPOINTS.SEND_OTP, payload);
     

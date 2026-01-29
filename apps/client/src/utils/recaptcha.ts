@@ -228,6 +228,7 @@ export const callReloadRecaptchaAPI = async (action: string = 'send_otp'): Promi
     // Step 2: Direct reload API call (as per requirement)
     // Generate payload with browser fingerprint data
     console.log('[reCAPTCHA] Generating payload...');
+    console.log('[reCAPTCHA] Current origin:', typeof window !== 'undefined' ? window.location.origin : 'N/A');
     const payload = await generateRecaptchaPayload(action);
     console.log('[reCAPTCHA] Payload generated, length:', payload.length);
 
