@@ -23,7 +23,7 @@ declare global {
   }
 }
 
-const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LfvF7AnAAAAADuStGW8G_ryWrwmnGbbBYbghZPG';
+const RECAPTCHA_SITE_KEY = '6LfvF7AnAAAAADuStGW8G_ryWrwmnGbbBYbghZPG' //process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LfvF7AnAAAAADuStGW8G_ryWrwmnGbbBYbghZPG';
 const RECAPTCHA_SCRIPT_ID = 'recaptcha-script';
 const RECAPTCHA_RELOAD_URL = 'https://www.google.com/recaptcha/enterprise/reload';
 
