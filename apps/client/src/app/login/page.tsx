@@ -205,7 +205,10 @@ function LoginContent() {
 
     try {
       // Step 1: Get reCAPTCHA token
+      console.error('🔵 [LOGIN] About to call getRecaptchaTokenForSendOTP');
+      console.log('[LOGIN] About to call getRecaptchaTokenForSendOTP');
       const captchaToken = await getRecaptchaTokenForSendOTP();
+      console.error('🔵 [LOGIN] Got captcha token, length:', captchaToken?.length);
 
       // Step 2: Call send OTP API with phone number and captcha token
       const response = await sendOTP({

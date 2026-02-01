@@ -218,11 +218,16 @@ const generateRecaptchaPayload = async (action: string): Promise<string> => {
  */
 export const callReloadRecaptchaAPI = async (action: string = 'send_otp'): Promise<string> => {
   try {
+    // Use console.error for visibility (shows even if console.log is filtered)
+    console.error('🔵 [reCAPTCHA] ===== STARTING reCAPTCHA CALL =====');
+    console.error('🔵 [reCAPTCHA] Action:', action);
     console.log('[reCAPTCHA] Starting reload API call for action:', action);
     
     // Step 1: Load reCAPTCHA script if not already loaded
+    console.error('🔵 [reCAPTCHA] Loading reCAPTCHA script...');
     console.log('[reCAPTCHA] Loading reCAPTCHA script...');
     await loadRecaptchaScript();
+    console.error('🔵 [reCAPTCHA] Script loaded successfully');
     console.log('[reCAPTCHA] Script loaded successfully');
 
     // Step 2: Direct reload API call (as per requirement)
@@ -254,6 +259,9 @@ export const callReloadRecaptchaAPI = async (action: string = 'send_otp'): Promi
     // Step 5: Check if response is successful
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('🔴 [reCAPTCHA] ===== API FAILED =====');
+      console.error('🔴 [reCAPTCHA] Status:', response.status);
+      console.error('🔴 [reCAPTCHA] Error Text:', errorText);
       console.error('[reCAPTCHA] Reload API failed:', response.status, errorText);
       throw new Error(`reCAPTCHA reload API failed with status ${response.status}: ${errorText}`);
     }
@@ -303,6 +311,9 @@ export const callReloadRecaptchaAPI = async (action: string = 'send_otp'): Promi
     return token;
 
   } catch (error: any) {
+    console.error('🔴 [reCAPTCHA] ===== ERROR CAUGHT =====');
+    console.error('🔴 [reCAPTCHA] Error Message:', error.message);
+    console.error('🔴 [reCAPTCHA] Error Stack:', error.stack);
     console.error('[reCAPTCHA] Reload API call error:', error);
     console.error('[reCAPTCHA] Error details:', {
       message: error.message,
@@ -344,6 +355,8 @@ export const callReloadRecaptchaAPI = async (action: string = 'send_otp'): Promi
  * @returns Promise<string> - Captcha token
  */
 export const executeRecaptcha = async (action: string = 'send_otp'): Promise<string> => {
+  console.error('🚀 [reCAPTCHA] executeRecaptcha CALLED with action:', action);
+  console.log('[reCAPTCHA] executeRecaptcha called with action:', action);
   return callReloadRecaptchaAPI(action);
 };
 
@@ -354,5 +367,7 @@ export const executeRecaptcha = async (action: string = 'send_otp'): Promise<str
  * @returns Promise<string> - Captcha token for send OTP
  */
 export const getRecaptchaTokenForSendOTP = async (): Promise<string> => {
+  console.error('🚀 [reCAPTCHA] getRecaptchaTokenForSendOTP CALLED');
+  console.log('[reCAPTCHA] getRecaptchaTokenForSendOTP called');
   return callReloadRecaptchaAPI('send_otp');
 };
