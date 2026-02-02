@@ -113,15 +113,26 @@ export const callReloadRecaptchaAPI = async (action: string = 'send_otp'): Promi
     console.error('🔵 [reCAPTCHA] Script loaded successfully');
     console.log('[reCAPTCHA] Script loaded successfully');
 
-    // Step 2: Use grecaptcha.enterprise.execute() - the correct way
-    console.error('🔵 [reCAPTCHA] Calling grecaptcha.enterprise.execute()...');
+    // Step 2: Use grecaptcha.enterprise.ready() then execute() - official pattern
+    console.error('🔵 [reCAPTCHA] Waiting for grecaptcha.enterprise.ready()...');
     console.log('[reCAPTCHA] Current origin:', typeof window !== 'undefined' ? window.location.origin : 'N/A');
     
-    if (!window.grecaptcha?.enterprise?.execute) {
-      throw new Error('grecaptcha.enterprise.execute is not available');
+    if (!window.grecaptcha?.enterprise) {
+      throw new Error('grecaptcha.enterprise is not available');
     }
 
-    const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action });
+    // Use the official pattern: grecaptcha.enterprise.ready() then execute()
+    const token = await new Promise<string>((resolve, reject) => {
+      window.grecaptcha.enterprise.ready(async () => {
+        try {
+          console.error('🔵 [reCAPTCHA] grecaptcha.enterprise.ready() called, executing...');
+          const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action });
+          resolve(token);
+        } catch (error: any) {
+          reject(error);
+        }
+      });
+    });
     
     console.error('🔵 [reCAPTCHA] Token received, length:', token?.length);
     console.log('[reCAPTCHA] Token generated successfully, length:', token?.length);
