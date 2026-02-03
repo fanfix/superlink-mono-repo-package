@@ -74,8 +74,10 @@ console.log(`Agency server path: ${agencyServerPath}`);
 const agencyServer = startServer('Agency', agencyServerPath, AGENCY_PORT);
 
 // Start client server (standalone structure: apps/client/server.js)
+// CRITICAL: Client server handles root path (/), must start successfully
 const clientServerPath = path.join(__dirname, 'apps', 'client', 'server.js');
-console.log(`Client server path: ${clientServerPath}`);
+console.log(`🔵 Client server path: ${clientServerPath}`);
+console.log(`🔵 Client server will handle root path (/) and all non-admin/agency routes`);
 const clientServer = startServer('Client', clientServerPath, CLIENT_PORT);
 
 // Wait for servers to be ready with timeout
@@ -85,7 +87,10 @@ const waitForServer = (port, name, maxAttempts = 60) => {
     const checkServer = () => {
       attempts++;
       if (attempts > maxAttempts) {
-        console.error(`Timeout waiting for ${name} server on port ${port}`);
+        console.error(`❌ Timeout waiting for ${name} server on port ${port}`);
+        if (name === 'Client') {
+          console.error(`❌ CRITICAL: Client server timeout - root path (/) will not work!`);
+        }
         reject(new Error(`Timeout waiting for ${name} server`));
         return;
       }
@@ -96,14 +101,14 @@ const waitForServer = (port, name, maxAttempts = 60) => {
         path: '/',
         method: 'GET',
         timeout: 2000
-      }, () => {
-        console.log(`✓ ${name} server ready on port ${port} (attempt ${attempts})`);
+      }, (res) => {
+        console.log(`✓ ${name} server ready on port ${port} (attempt ${attempts}, status: ${res.statusCode})`);
         resolve();
       });
       
-      req.on('error', () => {
+      req.on('error', (err) => {
         if (attempts % 10 === 0) {
-          console.log(`Waiting for ${name} server... (attempt ${attempts}/${maxAttempts})`);
+          console.log(`⏳ Waiting for ${name} server... (attempt ${attempts}/${maxAttempts})`);
         }
         setTimeout(checkServer, 1000);
       });
@@ -154,37 +159,45 @@ const server = http.createServer((req, res) => {
     proxyRequest(req, res, AGENCY_PORT, url);
   }
   // Route everything else (including root /) to client app
+  // IMPORTANT: This must be the default route for root path
   else {
     console.log(`[Router] Routing to Client app (port ${CLIENT_PORT}): ${url}`);
-    proxyRequest(req, res, CLIENT_PORT);
+    // Explicitly handle root path to ensure it goes to client
+    if (url === '/' || url === '') {
+      console.log(`[Router] Root path detected, routing to Client app`);
+    }
+    proxyRequest(req, res, CLIENT_PORT, url);
   }
 });
 
 // Wait for all servers to be ready before starting the router
+// IMPORTANT: Client server must start successfully for root path to work
 Promise.all([
   waitForServer(ADMIN_PORT, 'Admin').catch(err => {
-    console.error('Admin server failed to start:', err);
+    console.error('❌ Admin server failed to start:', err);
     process.exit(1);
   }),
   waitForServer(AGENCY_PORT, 'Agency').catch(err => {
-    console.error('Agency server failed to start:', err);
+    console.error('❌ Agency server failed to start:', err);
     process.exit(1);
   }),
   waitForServer(CLIENT_PORT, 'Client').catch(err => {
-    console.error('Client server failed to start:', err);
+    console.error('❌ Client server failed to start:', err);
+    console.error('❌ CRITICAL: Client server must be running for root path (/) to work');
     process.exit(1);
   })
 ]).then(() => {
-  console.log('All servers ready, starting router on port', PORT);
+  console.log('✅ All servers ready, starting router on port', PORT);
+  console.log('✅ Admin: http://localhost:' + PORT + '/admin');
+  console.log('✅ Agency: http://localhost:' + PORT + '/agency');
+  console.log('✅ Client: http://localhost:' + PORT + '/ (ROOT PATH)');
   // Only start listening after all servers are ready
   server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Router server listening on port ${PORT}`);
-    console.log(`Admin: http://localhost:${PORT}/admin`);
-    console.log(`Agency: http://localhost:${PORT}/agency`);
-    console.log(`Client: http://localhost:${PORT}/`);
+    console.log(`🚀 Router server listening on port ${PORT}`);
+    console.log(`📍 Root path (/) routes to Client app on port ${CLIENT_PORT}`);
   });
 }).catch(err => {
-  console.error('Failed to start all servers:', err);
+  console.error('❌ Failed to start all servers:', err);
   process.exit(1);
 });
 
@@ -211,9 +224,17 @@ const proxyRequest = (req, res, targetPort, customPath = null) => {
   });
 
   proxyReq.on('error', (err) => {
-    console.error(`[Router] Proxy error for port ${targetPort}: ${err.message}`);
+    console.error(`[Router] ❌ Proxy error for port ${targetPort}: ${err.message}`);
+    console.error(`[Router] ❌ Failed to proxy ${req.method} ${targetPath} to port ${targetPort}`);
+    
+    // If client server fails, this is critical
+    if (targetPort === CLIENT_PORT) {
+      console.error(`[Router] ❌ CRITICAL: Client server (port ${CLIENT_PORT}) is not responding!`);
+      console.error(`[Router] ❌ Root path (/) requires Client server to be running`);
+    }
+    
     res.writeHead(502, { 'Content-Type': 'text/plain' });
-    res.end(`Bad Gateway: Failed to connect to app on port ${targetPort}`);
+    res.end(`Bad Gateway: Failed to connect to app on port ${targetPort}. Check server logs.`);
   });
 
   req.pipe(proxyReq);
