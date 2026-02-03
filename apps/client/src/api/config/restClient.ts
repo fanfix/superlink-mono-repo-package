@@ -7,8 +7,8 @@ import axios from 'axios';
 import { getAuthToken, clearAuth } from '../../lib/auth';
 import { createApiError } from '../types';
 
-const REST_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.superlink.io';
-
+// const REST_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.superlink.io';
+const REST_BASE_URL = 'https://develop-service-v2.superlink.io';
 /**
  * Create REST client instance
  */

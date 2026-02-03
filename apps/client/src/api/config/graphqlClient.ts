@@ -7,8 +7,8 @@ import axios, { AxiosInstance } from 'axios';
 import { getAuthToken } from '../../lib/auth';
 import { createApiError } from '../types';
 
-const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'https://api.superlink.io/graphql';
-
+// const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'https://api.superlink.io/graphql';
+const GRAPHQL_ENDPOINT = 'https://develop-service-v2.superlink.io/graphql';
 /**
  * Create GraphQL client instance
  */
