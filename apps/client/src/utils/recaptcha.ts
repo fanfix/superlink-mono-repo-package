@@ -21,7 +21,8 @@ declare global {
   }
 }
 
-const RECAPTCHA_SITE_KEY = '6Ld1XF0sAAAAAAAl0op6cWo88bp53vlWI0VHgYzI';
+// const RECAPTCHA_SITE_KEY = '6Ld1XF0sAAAAAAAl0op6cWo88bp53vlWI0VHgYzI'; // prod keys
+const RECAPTCHA_SITE_KEY = '6LdRN1osAAAAAEZqVEOq0MXLVlg___42QaXACNWq';
 const RECAPTCHA_SCRIPT_ID = 'recaptcha-script';
 
 /**
