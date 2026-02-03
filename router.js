@@ -33,8 +33,17 @@ const startServer = (name, serverPath, port) => {
   
   console.log(`✓ ${name} server file found`);
   
+  // Set basePath environment variable for each app
+  const basePathEnv = name === 'Admin' ? '/admin' : name === 'Agency' ? '/agency' : '';
+  const serverEnv = { 
+    ...process.env, 
+    PORT: port, 
+    HOSTNAME: '127.0.0.1',
+    NEXT_PUBLIC_BASE_PATH: basePathEnv
+  };
+  
   const server = spawn('node', [serverPath], {
-    env: { ...process.env, PORT: port, HOSTNAME: '127.0.0.1' },
+    env: serverEnv,
     cwd: __dirname,
     stdio: 'inherit'
   });
@@ -115,10 +124,13 @@ const waitForServer = (port, name, maxAttempts = 60) => {
 const server = http.createServer((req, res) => {
   const url = req.url || '/';
   
+  console.log(`[Router] Incoming request: ${req.method} ${url}`);
+  
   // Route /admin/* to admin app
   // Admin app is built with basePath=/admin, so it expects /admin prefix
   // Also handle /admin (without trailing slash) -> redirect to /admin/
   if (url.startsWith('/admin')) {
+    console.log(`[Router] Routing to Admin app (port ${ADMIN_PORT}): ${url}`);
     // Handle exact /admin -> redirect to /admin/
     if (url === '/admin') {
       res.writeHead(301, { 'Location': '/admin/' });
@@ -131,6 +143,7 @@ const server = http.createServer((req, res) => {
   // Route /agency/* to agency app
   // Agency app is built with basePath=/agency, so it expects /agency prefix
   else if (url.startsWith('/agency')) {
+    console.log(`[Router] Routing to Agency app (port ${AGENCY_PORT}): ${url}`);
     // Handle exact /agency -> redirect to /agency/
     if (url === '/agency') {
       res.writeHead(301, { 'Location': '/agency/' });
@@ -140,8 +153,9 @@ const server = http.createServer((req, res) => {
     // Agency app expects /agency prefix, so pass the full path
     proxyRequest(req, res, AGENCY_PORT, url);
   }
-  // Route everything else to client app
+  // Route everything else (including root /) to client app
   else {
+    console.log(`[Router] Routing to Client app (port ${CLIENT_PORT}): ${url}`);
     proxyRequest(req, res, CLIENT_PORT);
   }
 });
@@ -176,10 +190,11 @@ Promise.all([
 
 // Simple HTTP proxy function
 const proxyRequest = (req, res, targetPort, customPath = null) => {
+  const targetPath = customPath !== null ? customPath : req.url;
   const options = {
     hostname: '127.0.0.1',
     port: targetPort,
-    path: customPath !== null ? customPath : req.url,
+    path: targetPath,
     method: req.method,
     headers: { ...req.headers }
   };
@@ -187,15 +202,18 @@ const proxyRequest = (req, res, targetPort, customPath = null) => {
   // Remove host header to avoid issues
   delete options.headers.host;
 
+  console.log(`[Router] Proxying ${req.method} ${targetPath} to port ${targetPort}`);
+
   const proxyReq = http.request(options, (proxyRes) => {
+    console.log(`[Router] Response from port ${targetPort}: ${proxyRes.statusCode} for ${targetPath}`);
     res.writeHead(proxyRes.statusCode, proxyRes.headers);
     proxyRes.pipe(res);
   });
 
   proxyReq.on('error', (err) => {
-    console.error(`Proxy error: ${err.message}`);
+    console.error(`[Router] Proxy error for port ${targetPort}: ${err.message}`);
     res.writeHead(502, { 'Content-Type': 'text/plain' });
-    res.end('Bad Gateway');
+    res.end(`Bad Gateway: Failed to connect to app on port ${targetPort}`);
   });
 
   req.pipe(proxyReq);
