@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Box, IconButton } from '@mui/material';
 import { Typography, Button } from '@superline/design-system';
 import { MoreVert as MoreVertIcon, Add as AddIcon, Image as ImageIcon } from '@mui/icons-material';
 import UploadContentModal from '../../UploadContentModal';
 import type { UploadContentData } from '../../UploadContentModal/types';
+import VerifiedCreatorModal from '../../modals/VerifiedCreatorModal';
 import { styles } from './styles';
+import { useGetStripeConnect } from '../../../../../../hooks/usePaymentApi';
 
 interface ExclusiveContentSectionProps {
   coverImage?: string;
@@ -20,8 +22,11 @@ export default function ExclusiveContentSection({
   dragHandleProps = {},
 }: ExclusiveContentSectionProps) {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isVerifiedCreatorModalOpen, setIsVerifiedCreatorModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(coverImage || null);
+
+  const { execute: getStripeConnect, loading: stripeLoading } = useGetStripeConnect();
 
   const handleAddContent = () => {
     setIsUploadModalOpen(true);
@@ -50,6 +55,47 @@ export default function ExclusiveContentSection({
   };
 
   const displayImage = selectedImage || coverImage;
+
+  const handleStripeConnect = useCallback(() => {
+    // Debug: verify button click is firing
+    // eslint-disable-next-line no-console
+    console.log('[ExclusiveContentSection] Connect Stripe button clicked');
+    setIsVerifiedCreatorModalOpen(true);
+  }, []);
+
+  const handleStripeConnectContinue = useCallback(async () => {
+    try {
+      // Debug: verify modal Continue is firing
+      // eslint-disable-next-line no-console
+      console.log('[ExclusiveContentSection] VerifiedCreatorModal Continue clicked – calling useGetStripeConnect');
+
+      const res = await getStripeConnect();
+      // eslint-disable-next-line no-console
+      console.log('[ExclusiveContentSection] Stripe connect response', res);
+      const url = res?.url;
+      const transferAllowed = !!res?.transferAllowed;
+
+      if (!url) {
+        throw new Error('Stripe connect URL not received');
+      }
+
+      if (typeof window !== 'undefined') {
+        // Remember where to come back after Stripe
+        sessionStorage.setItem('stripe_connect_redirect', '/creator/myPage');
+      }
+
+      if (transferAllowed) {
+        window.open(url, '_blank');
+        return;
+      }
+
+      window.location.href = url;
+    } catch (err) {
+      // For now we just log; UI can be enhanced later with visible errors
+      // eslint-disable-next-line no-console
+      console.error('Failed to start Stripe connect from ExclusiveContentSection', err);
+    }
+  }, [getStripeConnect]);
 
   return (
     <>
@@ -101,7 +147,12 @@ export default function ExclusiveContentSection({
           Add Content
         </Button>
 
-        <Button variant="primary-dark" onClick={() => {}} sx={styles.stripeButton}>
+        <Button
+          variant="primary-dark"
+          onClick={handleStripeConnect}
+          sx={styles.stripeButton}
+          disabled={stripeLoading}
+        >
           <Box component="span" sx={styles.stripeLogo}>S</Box>
           Connect Stripe and Activate Section
         </Button>
@@ -111,6 +162,12 @@ export default function ExclusiveContentSection({
         open={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onAdd={handleUploadComplete}
+      />
+
+      <VerifiedCreatorModal
+        open={isVerifiedCreatorModalOpen}
+        onClose={() => setIsVerifiedCreatorModalOpen(false)}
+        onContinue={handleStripeConnectContinue}
       />
     </>
   );

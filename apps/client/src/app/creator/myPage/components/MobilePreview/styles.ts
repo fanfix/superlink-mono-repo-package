@@ -241,11 +241,14 @@ export const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 'var(--spacing-mypage-gap-lg)',
+    gap: 'var(--spacing-mypage-gap-md)',
     marginTop: '-110px',
     marginBottom: 'var(--padding-lg)',
     zIndex: 2,
     position: 'relative' as const,
+    flexWrap: 'wrap' as const,
+    maxWidth: '90%',
+    margin: '-110px auto var(--padding-lg) auto',
   } as SxProps<Theme>,
 
   socialIconCircle: {
@@ -257,6 +260,7 @@ export const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
+    flexShrink: 0,
     '& svg': {
       fontSize: 'var(--size-icon-md)',
       width: 'var(--size-icon-md)',

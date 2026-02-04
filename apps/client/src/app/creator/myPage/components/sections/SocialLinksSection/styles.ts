@@ -57,10 +57,15 @@ export const styles = {
       borderRadius: '50%',
       ...getBackgroundStyle(),
       '& svg': {
+        fill: '#FFFFFF !important',
         color: '#FFFFFF',
         fontSize: '20px',
         width: '20px',
         height: '20px',
+      },
+      '& .MuiSvgIcon-root': {
+        fill: '#FFFFFF !important',
+        color: '#FFFFFF',
       },
     } as SxProps<Theme>;
   },

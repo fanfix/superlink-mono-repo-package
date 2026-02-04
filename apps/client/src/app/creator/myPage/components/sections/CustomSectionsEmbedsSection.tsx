@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Box, IconButton } from '@mui/material';
 import { Typography, Button } from '@superline/design-system';
 import CollapsibleSection from '../shared/CollapsibleSection';
+import VerifiedCreatorModal from '../modals/VerifiedCreatorModal';
 import AddCustomSectionModal from '../modals/AddCustomSectionModal';
 import AddContentModal from '../modals/AddContentModal';
 import AddEmbedSectionModal from '../AddEmbedSectionModal';
@@ -26,6 +27,7 @@ import { SortableContentItem } from './CustomSectionsEmbedsSection/components/So
 import { SortableSection } from './CustomSectionsEmbedsSection/components/SortableSection';
 import type { UploadContentData } from '../UploadContentModal/types';
 import type { ContentItem, CustomSection, TextSection } from '../MobilePreview/types';
+import { useGetStripeConnect } from '../../../../../hooks/usePaymentApi';
 
 interface CustomSectionsEmbedsSectionProps {
   coverImage?: string;
@@ -89,12 +91,15 @@ export default function CustomSectionsEmbedsSection({
   const [isTextSectionModalOpen, setIsTextSectionModalOpen] = useState(false);
   const [isAddContentModalOpen, setIsAddContentModalOpen] = useState(false);
   const [isAddEmbedModalOpen, setIsAddEmbedModalOpen] = useState(false);
+  const [isVerifiedCreatorModalOpen, setIsVerifiedCreatorModalOpen] = useState(false);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [editingContentItem, setEditingContentItem] = useState<{ sectionId: string; item: ContentItem } | null>(null);
   const [editingContent, setEditingContent] = useState<ContentItem | null>(null);
   const [editingCustomSection, setEditingCustomSection] = useState<CustomSection | null>(null);
   const [editingTextSection, setEditingTextSection] = useState<TextSection | null>(null);
   const [editingEmailSection, setEditingEmailSection] = useState<TextSection | null>(null);
+
+  const { execute: getStripeConnect, loading: stripeLoading } = useGetStripeConnect();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -158,6 +163,46 @@ export default function CustomSectionsEmbedsSection({
     }
     setEditingContent(null);
   };
+
+  const handleStripeConnectClick = useCallback(() => {
+    // Debug: verify button click
+    // eslint-disable-next-line no-console
+    console.log('[CustomSectionsEmbedsSection] Connect Stripe button clicked');
+    setIsVerifiedCreatorModalOpen(true);
+  }, []);
+
+  const handleStripeConnectContinue = useCallback(async () => {
+    try {
+      // Debug: verify modal Continue is firing
+      // eslint-disable-next-line no-console
+      console.log('[CustomSectionsEmbedsSection] VerifiedCreatorModal Continue clicked – calling useGetStripeConnect');
+
+      const res = await getStripeConnect();
+      // eslint-disable-next-line no-console
+      console.log('[CustomSectionsEmbedsSection] Stripe connect response', res);
+
+      const url = res?.url;
+      const transferAllowed = !!res?.transferAllowed;
+
+      if (!url) {
+        throw new Error('Stripe connect URL not received');
+      }
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('stripe_connect_redirect', '/creator/myPage');
+      }
+
+      if (transferAllowed) {
+        window.open(url, '_blank');
+        return;
+      }
+
+      window.location.href = url;
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[CustomSectionsEmbedsSection] Failed to start Stripe connect', err);
+    }
+  }, [getStripeConnect]);
 
   // Get the first content item's image, or use coverImage as fallback
   const displayImage = contentItems.length > 0 && contentItems[0]?.imageUrl 
@@ -489,7 +534,12 @@ export default function CustomSectionsEmbedsSection({
                       </Button>
 
                       {/* Stripe Button */}
-                      <Button variant="primary-dark" onClick={() => {}} sx={stripeButtonStyles}>
+                      <Button
+                        variant="primary-dark"
+                        onClick={handleStripeConnectClick}
+                        sx={stripeButtonStyles}
+                        disabled={stripeLoading}
+                      >
                         <Box component="span" sx={stripeLogoStyles}>S</Box>
                         Connect Stripe and Activate Section
                       </Button>
@@ -880,6 +930,12 @@ export default function CustomSectionsEmbedsSection({
           setSelectedSectionId(null);
         }}
         customSectionId={selectedSectionId ?? ''}
+      />
+
+      <VerifiedCreatorModal
+        open={isVerifiedCreatorModalOpen}
+        onClose={() => setIsVerifiedCreatorModalOpen(false)}
+        onContinue={handleStripeConnectContinue}
       />
     </CollapsibleSection>
   );

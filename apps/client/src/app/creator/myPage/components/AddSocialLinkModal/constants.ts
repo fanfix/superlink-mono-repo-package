@@ -17,5 +17,17 @@ export const SOCIAL_MEDIA_PLATFORMS: SocialPlatform[] = [
   { value: 'Twitch', label: 'Twitch', urlPrefix: 'https://www.twitch.tv/' },
   { value: 'Reddit', label: 'Reddit', urlPrefix: 'https://www.reddit.com/user/' },
   { value: 'Telegram', label: 'Telegram', urlPrefix: 'https://t.me/' },
+  { value: 'AmazonWishlist', label: 'Amazon Wishlist', urlPrefix: 'https://www.amazon.com/hz/wishlist/ls/' },
+  { value: 'AppleMusic', label: 'Apple Music', urlPrefix: 'https://music.apple.com/' },
+  { value: 'Spotify', label: 'Spotify', urlPrefix: 'https://open.spotify.com/' },
+  { value: 'Shopify', label: 'Shopify', urlPrefix: 'https://' },
+  { value: 'OnlyFans', label: 'OnlyFans', urlPrefix: 'https://onlyfans.com/' },
+  { value: 'Fanfix', label: 'Fanfix', urlPrefix: 'https://fanfix.io/' },
+  { value: 'Cameo', label: 'Cameo', urlPrefix: 'https://www.cameo.com/' },
+  { value: 'CashApp', label: 'CashApp', urlPrefix: 'https://cash.app/$' },
+  { value: 'FamousBirthdays', label: 'Famous Birthdays', urlPrefix: 'https://www.famousbirthdays.com/' },
+  { value: 'Passes', label: 'Passes', urlPrefix: 'https://passes.com/' },
+  { value: 'PayPal', label: 'PayPal', urlPrefix: 'https://paypal.me/' },
+  { value: 'Threads', label: 'Threads', urlPrefix: 'https://www.threads.net/@' },
+  { value: 'Other', label: 'Other', urlPrefix: '' },
 ];
-

@@ -184,8 +184,7 @@ export default function MyPage() {
           // Use currentUser.bio directly - it already has all the data we need
           const bio = currentUser.bio;
           
-          // Set profile data from currentUser.bio
-          // Set pageName - prioritize bio.pageName (user's custom page name), then user's name as fallback
+         
           if (bio.pageName && bio.pageName.trim() !== '') {
             setPageName(bio.pageName);
           } else if (currentUser.name) {
@@ -1370,12 +1369,12 @@ export default function MyPage() {
   }, []);
 
   // Handler for adding new social link with API
-  const handleAddSocialLink = useCallback(async (platform: string, url: string, username: string = '') => {
+  const handleAddSocialLink = useCallback(async (platform: string, url: string, isDropdown?: boolean) => {
     try {
       const response = await addSocialLink({
         name: platform,
         url,
-        username,
+        isDropdown,
       });
       
       if (response) {
@@ -1384,6 +1383,7 @@ export default function MyPage() {
       platform,
       url,
       icon: getSocialIcon(platform, 20, '#000000'),
+      isDropdown,
     };
     setSocialLinks((prevLinks) => [...prevLinks, newLink]);
         showToast('Social link added successfully', 'success');
@@ -1391,7 +1391,7 @@ export default function MyPage() {
     } catch (error) {
       showToast('Failed to add social link', 'error');
     }
-  }, [addSocialLink, showToast]);
+  }, [addSocialLink, showToast, getSocialIcon]);
 
   // Handler for updating social link with API
   const handleUpdateSocialLink = useCallback(async (id: string, platform: string, url: string, username: string = '') => {
@@ -1949,4 +1949,5 @@ export default function MyPage() {
     </PageContainer>
   );
 }
+
 

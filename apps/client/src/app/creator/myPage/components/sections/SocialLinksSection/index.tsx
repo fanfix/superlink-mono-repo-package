@@ -19,10 +19,21 @@ import EditSocialLinkModal from '../../EditSocialLinkModal';
 import { SocialLinksSectionProps, SocialLink } from './types';
 import { SortableLinkItem } from './components/SortableLinkItem';
 import { styles } from './styles';
+import { getSocialIcon } from './utils/getSocialIcon';
 
 const DEFAULT_LINKS: SocialLink[] = [
-  { id: '1', platform: 'Instagram', url: 'https://www.instagram.com/muazfanfix/' },
-  { id: '2', platform: 'Facebook', url: 'https://www.facebook.com/mmuaz007/' },
+  { 
+    id: '1', 
+    platform: 'Instagram', 
+    url: 'https://www.instagram.com/', 
+    icon: getSocialIcon('instagram', 20, '#FFFFFF') 
+  },
+  { 
+    id: '2', 
+    platform: 'Facebook', 
+    url: 'https://www.facebook.com/', 
+    icon: getSocialIcon('facebook', 20, '#FFFFFF') 
+  },
 ];
 
 export default function SocialLinksSection({

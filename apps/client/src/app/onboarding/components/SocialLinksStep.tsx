@@ -6,8 +6,6 @@ import {
   Button,
   TextField,
   Typography,
-  SpotifyLogoIcon,
-  OnlyFansLogoIcon,
 } from '@superline/design-system';
 import { getSocialIcon } from '../../creator/myPage/components/sections/SocialLinksSection/utils/getSocialIcon';
 import type { OnboardSocialLinkInput } from '../../../api/types';
@@ -127,7 +125,7 @@ type SocialKey =
   | 'tiktok'
   | 'snapchat'
   | 'spotify'
-  | 'onlyfans';
+  | 'fanfix';
 
 const SOCIAL_FIELDS: { key: SocialKey; placeholder: string }[] = [
   { key: 'facebook', placeholder: 'Facebook username' },
@@ -137,7 +135,7 @@ const SOCIAL_FIELDS: { key: SocialKey; placeholder: string }[] = [
   { key: 'tiktok', placeholder: 'Tiktok username' },
   { key: 'snapchat', placeholder: 'Snapchat username' },
   { key: 'spotify', placeholder: 'Spotify username' },
-  { key: 'onlyfans', placeholder: 'Onlyfans username' },
+  { key: 'fanfix', placeholder: 'Fanfix username' },
 ];
 
 const BRAND_COLORS: Record<SocialKey, string> = {
@@ -148,7 +146,8 @@ const BRAND_COLORS: Record<SocialKey, string> = {
   tiktok: 'var(--color-social-tiktok)',
   snapchat: 'var(--color-social-snapchat)',
   spotify: 'var(--color-social-spotify)',
-  onlyfans: 'var(--color-social-onlyfans)',
+  // Prefer dedicated Fanfix color; fall back to OnlyFans color if not defined
+  fanfix: 'var(--color-social-fanfix, var(--color-social-onlyfans))',
 };
 
 const SocialLinksStep = ({ onContinue }: SocialLinksStepProps) => {
@@ -160,7 +159,7 @@ const SocialLinksStep = ({ onContinue }: SocialLinksStepProps) => {
     tiktok: '',
     snapchat: '',
     spotify: '',
-    onlyfans: '',
+    fanfix: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -180,7 +179,7 @@ const SocialLinksStep = ({ onContinue }: SocialLinksStepProps) => {
       tiktok: 'tiktok.com',
       snapchat: 'snapchat.com',
       spotify: 'open.spotify.com',
-      onlyfans: 'onlyfans.com',
+      fanfix: 'fanfix.io',
     };
 
     return SOCIAL_FIELDS.flatMap(({ key }) => {
@@ -193,24 +192,22 @@ const SocialLinksStep = ({ onContinue }: SocialLinksStepProps) => {
     });
   }, [values]);
 
+  const PLATFORM_NAMES: Record<SocialKey, string> = {
+    facebook: 'Facebook',
+    twitter: 'Twitter',
+    instagram: 'Instagram',
+    youtube: 'YouTube',
+    tiktok: 'TikTok',
+    snapchat: 'Snapchat',
+    spotify: 'Spotify',
+    fanfix: 'Fanfix',
+  };
+
   const renderLogo = (key: SocialKey, active: boolean) => {
     const color = active ? BRAND_COLORS[key] : 'var(--color-onboarding-background-gray-dark)';
 
-    // Use utility function for common platforms
-    const commonPlatforms = ['facebook', 'twitter', 'instagram', 'youtube', 'tiktok', 'snapchat'];
-    if (commonPlatforms.includes(key)) {
-      return getSocialIcon(key.charAt(0).toUpperCase() + key.slice(1), 18, color);
-    }
-
-    // Handle special cases (Spotify, OnlyFans) that aren't in the utility yet
-    switch (key) {
-      case 'spotify':
-        return <SpotifyLogoIcon size={18} color={color} />;
-      case 'onlyfans':
-        return <OnlyFansLogoIcon size={18} color={color} />;
-      default:
-        return getSocialIcon('TikTok', 18, color);
-    }
+    const platformName = PLATFORM_NAMES[key];
+    return getSocialIcon(platformName, 18, color);
   };
 
   return (

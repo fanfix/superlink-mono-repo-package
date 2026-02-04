@@ -61,6 +61,11 @@ export default function AddSocialLinkModal({ open, onClose, onAdd }: AddSocialLi
               displayEmpty
               sx={socialLinkModalStyles.select}
               IconComponent={KeyboardArrowDown}
+              MenuProps={{
+                PaperProps: {
+                  sx: { maxHeight: 300 },
+                },
+              }}
             >
               <MenuItem value="" disabled>
                 <em>Select Platform</em>
