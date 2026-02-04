@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import LandingNavbar from '../../components/LandingNavbar';
 import { SettingsModalProvider, useSettingsModal } from '../../contexts/SettingsModalContext';
@@ -15,11 +15,21 @@ import { TippingHistoryProvider } from '../../contexts/TippingHistoryContext';
 import { ManageAccessProvider } from '../../contexts/ManageAccessContext';
 import SettingsModal from './myPage/components/modals/SettingsModal';
 import { useAuth } from '../../contexts/AuthContext';
+import Loader from '../../components/Loader';
 
 function CreatorLayoutContent({ children }: { children: React.ReactNode }) {
   const { isOpen, openModal, closeModal } = useSettingsModal();
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, userState, currentUser } = useAuth();
+  const [initialAuthResolved, setInitialAuthResolved] = useState(false);
+
+  // Only show the full-screen loader during the very first auth resolution.
+  // After that, background refreshes (triggered by various API actions) should NOT block the whole creator UI.
+  useEffect(() => {
+    if (!isLoading) {
+      setInitialAuthResolved(true);
+    }
+  }, [isLoading]);
 
   // Handle Stripe Connect callback redirect
   useEffect(() => {
@@ -50,6 +60,24 @@ function CreatorLayoutContent({ children }: { children: React.ReactNode }) {
       router.push('/login');
     }
   }, [isLoading, isAuthenticated, router]);
+
+  // If authenticated but missing creator/bio state, send to onboarding
+  useEffect(() => {
+    if (isLoading || !isAuthenticated) return;
+
+    const hasBio = !!(currentUser?.bio?.id || userState?.bio?.id);
+    if (!hasBio) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('onboarding-in-progress', 'true');
+      }
+      router.push('/onboarding');
+    }
+  }, [isLoading, isAuthenticated, currentUser?.bio?.id, userState?.bio?.id, router]);
+
+  // Show splash loader ONLY on initial route entry/refresh while auth is resolving.
+  if (!initialAuthResolved && (isLoading || !isAuthenticated)) {
+    return <Loader fullScreen={true} />;
+  }
 
   return (
     <>

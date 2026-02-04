@@ -25,40 +25,36 @@ export const validateAuth = async (): Promise<{
   }
 
   try {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[AuthGuard] Validating token - calling state and currentUser APIs...');
-    }
-
-    // Call both APIs in parallel for validation (as per requirement)
-    const [userState, currentUser] = await Promise.all([
-      getAuthStateApi(),
-      getCurrentUserApi(),
-    ]);
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[AuthGuard] Token validated successfully', {
-        userId: currentUser?.id || userState?.id,
-        hasBio: !!userState?.bio,
-        hasOnboarding: !!userState?.onboarding,
-      });
-    }
+    // NOTE:
+    // currentUser GraphQL may fail for users without bio/onboarding complete.
+    // So validate via /auth/state first, then call currentUser only when bio exists.
+    const userState = await getAuthStateApi();
+    const hasBio = !!(userState?.bio?.id || userState?.bioId);
+    const currentUser = hasBio ? await getCurrentUserApi() : null;
 
     // Store user data in localStorage for header display
-    if (typeof window !== 'undefined' && currentUser) {
-      localStorage.setItem('auth-user', JSON.stringify({
-        id: currentUser.id,
-        name: currentUser.name,
-        email: currentUser.email,
-        username: currentUser.bio?.username || currentUser.name,
-        imageURL: currentUser.bio?.imageURL || null,
-      }));
+    if (typeof window !== 'undefined') {
+      if (currentUser) {
+        localStorage.setItem('auth-user', JSON.stringify({
+          id: currentUser.id,
+          name: currentUser.name,
+          email: currentUser.email,
+          username: currentUser.bio?.username || currentUser.name,
+          imageURL: currentUser.bio?.imageURL || null,
+        }));
+      } else if (userState) {
+        localStorage.setItem('auth-user', JSON.stringify({
+          id: userState.id,
+          name: userState.name ?? null,
+          email: userState.email ?? null,
+          username: userState.username ?? userState.name ?? null,
+          imageURL: userState.bio?.imageURL ?? userState.imageURL ?? null,
+        }));
+      }
     }
 
     return { userState, currentUser };
   } catch (error: any) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[AuthGuard] Token validation failed:', error);
-    }
     // Clear invalid token
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth-token');

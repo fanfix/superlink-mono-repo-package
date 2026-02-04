@@ -2,10 +2,16 @@
 
 import React from 'react';
 import { Box } from '@mui/material';
-import { DotGraph, DotGraphPoint, Typography } from '@superline/design-system';
+import { DotGraph, Typography } from '@superline/design-system';
 import ClickableMetricCard from './ClickableMetricCard';
 
 export type MetricKey = 'visits' | 'clicks' | 'ctr';
+
+type DotGraphPoint = {
+  label: string;
+  value: number;
+  color?: string;
+};
 
 interface PageActivitySectionProps {
   metrics: Record<MetricKey, number>;

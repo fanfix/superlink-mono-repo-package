@@ -81,7 +81,6 @@ export function MyAccountProvider({ children, autoFetch = true }: MyAccountProvi
       });
       setDecryptedData(decrypted);
     } catch (err) {
-      console.error('Failed to decrypt user data:', err);
       // Silently fail - decryption is optional
     } finally {
       setDecrypting(false);
@@ -107,7 +106,6 @@ export function MyAccountProvider({ children, autoFetch = true }: MyAccountProvi
         await refreshUser();
       }
     } catch (err: any) {
-      console.error('Failed to update user:', err);
       setError(err);
       throw err;
     } finally {
@@ -123,7 +121,6 @@ export function MyAccountProvider({ children, autoFetch = true }: MyAccountProvi
       await refreshUser();
       return response;
     } catch (err: any) {
-      console.error('Failed to update bio:', err);
       setError(err);
       throw err;
     } finally {

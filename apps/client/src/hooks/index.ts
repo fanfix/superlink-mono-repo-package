@@ -18,4 +18,5 @@ export * from './useCustomButtonApi';
 export * from './useCustomSectionApi';
 export * from './useBrandKitApi';
 export * from './useManageAccessApi';
+export * from './useOnboardingApi';
 

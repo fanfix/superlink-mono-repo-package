@@ -7,7 +7,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode, useRef } from 'react';
-import { getAuthToken } from '../lib/auth';
+import { getAuthToken, removeAuthToken } from '../lib/auth';
 import { getAuthStateApi } from '../api/services/authService';
 import { getCurrentUserApi } from '../api/services/profileService';
 import type { UserState, CurrentUser } from '../api/types';
@@ -20,7 +20,7 @@ interface AuthContextValue {
   currentUser: CurrentUser | null;
   
   // Actions
-  refreshAuth: () => Promise<void>;
+  refreshAuth: (force?: boolean) => Promise<void>;
   clearAuth: () => void;
 }
 
@@ -50,7 +50,7 @@ export function AuthProvider({ children, autoFetch = true }: AuthProviderProps) 
   /**
    * Refresh auth state (cached to prevent duplicates)
    */
-  const refreshAuth = useCallback(async () => {
+  const refreshAuth = useCallback(async (force: boolean = false) => {
     const token = getAuthToken();
     
     if (!token) {
@@ -63,7 +63,7 @@ export function AuthProvider({ children, autoFetch = true }: AuthProviderProps) 
 
     // Prevent duplicate calls within cache duration
     const now = Date.now();
-    if (isFetchingRef.current || (now - lastFetchTimeRef.current < CACHE_DURATION)) {
+    if (!force && (isFetchingRef.current || (now - lastFetchTimeRef.current < CACHE_DURATION))) {
       return;
     }
 
@@ -71,38 +71,66 @@ export function AuthProvider({ children, autoFetch = true }: AuthProviderProps) 
     setIsLoading(true);
 
     try {
-      // Call both APIs in parallel (like superlink-main)
-      const [stateData, userData] = await Promise.all([
-        getAuthStateApi(),
-        getCurrentUserApi(),
-      ]);
-
+      // IMPORTANT:
+      // - /auth/state works for all authenticated users
+      // - currentUser GraphQL can fail for users that haven't completed onboarding/bio yet
+      // So we fetch state first, and only call currentUser when bio exists.
+      const stateData = await getAuthStateApi();
       setUserState(stateData);
-      setCurrentUser(userData);
       setIsAuthenticated(true);
       lastFetchTimeRef.current = now;
 
-      // Store in localStorage for quick access
-      if (typeof window !== 'undefined' && userData) {
-        localStorage.setItem('auth-user', JSON.stringify({
-          id: userData.id,
-          name: userData.name,
-          email: userData.email,
-          username: userData.bio?.username || userData.name,
-          imageURL: userData.bio?.imageURL || null,
-        }));
+      const hasBio = !!(stateData?.bio?.id || stateData?.bioId);
+      if (!hasBio) {
+        // Do not call currentUser until bio exists
+        setCurrentUser(null);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(
+            'auth-user',
+            JSON.stringify({
+              id: stateData?.id,
+              name: stateData?.name ?? null,
+              email: stateData?.email ?? null,
+              username: stateData?.username ?? stateData?.name ?? null,
+              imageURL: stateData?.bio?.imageURL ?? stateData?.imageURL ?? null,
+            })
+          );
+        }
+        return;
+      }
+
+      // Bio exists -> safe to fetch full currentUser
+      try {
+        const userData = await getCurrentUserApi();
+        setCurrentUser(userData);
+        if (typeof window !== 'undefined' && userData) {
+          localStorage.setItem(
+            'auth-user',
+            JSON.stringify({
+              id: userData.id,
+              name: userData.name,
+              email: userData.email,
+              username: userData.bio?.username || userData.name,
+              imageURL: userData.bio?.imageURL || null,
+            })
+          );
+        }
+      } catch {
+        // Keep user authenticated via /auth/state, but don't crash the app
+        setCurrentUser(null);
       }
     } catch (error) {
-      console.error('[AuthContext] Failed to fetch auth:', error);
       setIsAuthenticated(false);
       setUserState(null);
       setCurrentUser(null);
       
       // Clear invalid token
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth-token');
-        localStorage.removeItem('accessToken');
+        removeAuthToken();
         localStorage.removeItem('auth-user');
+        localStorage.removeItem('onboarding-complete');
+        sessionStorage.removeItem('onboarding-in-progress');
+        sessionStorage.removeItem('stripe_connect_redirect');
       }
     } finally {
       setIsLoading(false);
@@ -118,9 +146,14 @@ export function AuthProvider({ children, autoFetch = true }: AuthProviderProps) 
     setUserState(null);
     setCurrentUser(null);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth-token');
-      localStorage.removeItem('accessToken');
+      removeAuthToken();
       localStorage.removeItem('auth-user');
+      localStorage.removeItem('onboarding-complete');
+      sessionStorage.removeItem('onboarding-in-progress');
+      sessionStorage.removeItem('stripe_connect_redirect');
+      sessionStorage.removeItem('login-phone');
+      sessionStorage.removeItem('signup-phone');
+      sessionStorage.removeItem('auth-flow');
     }
   }, []);
 
@@ -141,8 +174,16 @@ export function AuthProvider({ children, autoFetch = true }: AuthProviderProps) 
       }
     };
 
+    const handleSameTabTokenChange = () => {
+      refreshAuth(true);
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('auth-token-changed', handleSameTabTokenChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('auth-token-changed', handleSameTabTokenChange);
+    };
   }, [refreshAuth]);
 
   const value: AuthContextValue = {

@@ -22,7 +22,10 @@ declare global {
 }
 
 // const RECAPTCHA_SITE_KEY = '6Ld1XF0sAAAAAAAl0op6cWo88bp53vlWI0VHgYzI'; // prod keys
-const RECAPTCHA_SITE_KEY = '6LdRN1osAAAAAEZqVEOq0MXLVlg___42QaXACNWq';
+const RECAPTCHA_SITE_KEY =
+  process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ||
+  process.env.NEXT_PUBLIC_RECAPTCHA_KEY ||
+  '6LdRN1osAAAAAEZqVEOq0MXLVlg___42QaXACNWq';
 const RECAPTCHA_SCRIPT_ID = 'recaptcha-script';
 
 /**
@@ -103,21 +106,10 @@ export const loadRecaptchaScript = (): Promise<void> => {
  */
 export const callReloadRecaptchaAPI = async (action: string = 'send_otp'): Promise<string> => {
   try {
-    console.error('🔵 [reCAPTCHA] ===== STARTING reCAPTCHA =====');
-    console.error('🔵 [reCAPTCHA] Action:', action);
-    console.log('[reCAPTCHA] Starting reCAPTCHA execution for action:', action);
-    
     // Step 1: Load reCAPTCHA script if not already loaded
-    console.error('🔵 [reCAPTCHA] Loading reCAPTCHA script...');
-    console.log('[reCAPTCHA] Loading reCAPTCHA script...');
     await loadRecaptchaScript();
-    console.error('🔵 [reCAPTCHA] Script loaded successfully');
-    console.log('[reCAPTCHA] Script loaded successfully');
 
     // Step 2: Use grecaptcha.enterprise.ready() then execute() - official pattern
-    console.error('🔵 [reCAPTCHA] Waiting for grecaptcha.enterprise.ready()...');
-    console.log('[reCAPTCHA] Current origin:', typeof window !== 'undefined' ? window.location.origin : 'N/A');
-    
     if (!window.grecaptcha?.enterprise) {
       throw new Error('grecaptcha.enterprise is not available');
     }
@@ -126,7 +118,6 @@ export const callReloadRecaptchaAPI = async (action: string = 'send_otp'): Promi
     const token = await new Promise<string>((resolve, reject) => {
       window.grecaptcha.enterprise.ready(async () => {
         try {
-          console.error('🔵 [reCAPTCHA] grecaptcha.enterprise.ready() called, executing...');
           const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action });
           resolve(token);
         } catch (error: any) {
@@ -135,27 +126,13 @@ export const callReloadRecaptchaAPI = async (action: string = 'send_otp'): Promi
       });
     });
     
-    console.error('🔵 [reCAPTCHA] Token received, length:', token?.length);
-    console.log('[reCAPTCHA] Token generated successfully, length:', token?.length);
-
     if (!token || typeof token !== 'string' || token.length < 10) {
-      console.error('🔴 [reCAPTCHA] Invalid token received:', { token, type: typeof token, length: token?.length });
       throw new Error('Invalid token received from reCAPTCHA');
     }
 
-    console.error('🔵 [reCAPTCHA] ===== SUCCESS =====');
     return token;
 
   } catch (error: any) {
-    console.error('🔴 [reCAPTCHA] ===== ERROR CAUGHT =====');
-    console.error('🔴 [reCAPTCHA] Error Message:', error.message);
-    console.error('🔴 [reCAPTCHA] Error Stack:', error.stack);
-    console.error('[reCAPTCHA] Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
-    
     if (error.message?.includes('Failed to fetch') || error.message?.includes('Network')) {
       throw new Error('Network error: Failed to connect to reCAPTCHA. Please check your internet connection.');
     }
@@ -172,8 +149,6 @@ export const callReloadRecaptchaAPI = async (action: string = 'send_otp'): Promi
  * @returns Promise<string> - Captcha token
  */
 export const executeRecaptcha = async (action: string = 'send_otp'): Promise<string> => {
-  console.error('🚀 [reCAPTCHA] executeRecaptcha CALLED with action:', action);
-  console.log('[reCAPTCHA] executeRecaptcha called with action:', action);
   return callReloadRecaptchaAPI(action);
 };
 
@@ -184,7 +159,5 @@ export const executeRecaptcha = async (action: string = 'send_otp'): Promise<str
  * @returns Promise<string> - Captcha token for send OTP
  */
 export const getRecaptchaTokenForSendOTP = async (): Promise<string> => {
-  console.error('🚀 [reCAPTCHA] getRecaptchaTokenForSendOTP CALLED');
-  console.log('[reCAPTCHA] getRecaptchaTokenForSendOTP called');
   return callReloadRecaptchaAPI('send_otp');
 };

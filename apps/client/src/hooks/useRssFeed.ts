@@ -67,8 +67,7 @@ export const useRssFeed = () => {
       if (error.name === 'AbortError') {
         return [];
       }
-      
-      console.error('Error fetching RSS feed:', error);
+
       // Even on error, keep loading state briefly for smooth UX
       setTimeout(() => {
         setLoading(false);

@@ -9,6 +9,10 @@ import CloseIcon from '@mui/icons-material/Close';
 import Cropper, { Area } from 'react-easy-crop';
 import { HexColorPicker } from 'react-colorful';
 import { Button, Modal, TextField, Typography } from '@superline/design-system';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useApiCall } from '../../../hooks/useApiCall';
+import { uploadExclusiveContentApi } from '../../../api/services/uploadService';
+import type { UploadExclusiveContentInput } from '../../../api/types';
 
 interface UploadContentStepProps {
   onContinue: () => void;
@@ -308,6 +312,10 @@ const getCroppedImg = async (imageSrc: string, pixelCrop: Area) => {
 
 const UploadContentStep = ({ onContinue }: UploadContentStepProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { currentUser, userState } = useAuth();
+  const bioId = currentUser?.bio?.id || userState?.bio?.id || null;
+  const { execute: uploadExclusiveContent, loading: uploading } = useApiCall(uploadExclusiveContentApi);
+  const [serverError, setServerError] = useState<string>('');
 
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
@@ -440,6 +448,91 @@ const UploadContentStep = ({ onContinue }: UploadContentStepProps) => {
   const previewTitle = useMemo(() => title.trim() || 'James David', [title]);
 
   const isFormValid = Boolean(uploadedImage && title.trim().length > 0);
+
+  const dataUrlToFile = useCallback((dataUrl: string, filename: string): File => {
+    const [meta, b64] = dataUrl.split(',');
+    const mime = meta?.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new File([bytes], filename, { type: mime });
+  }, []);
+
+  const handleContinue = useCallback(async () => {
+    // Skip if user didn't add content
+    if (!isFormValid) {
+      onContinue();
+      return;
+    }
+
+    if (!bioId) {
+      setServerError('Profile is not ready yet. Please try again in a moment.');
+      return;
+    }
+
+    try {
+      setServerError('');
+
+      const file = dataUrlToFile(uploadedImage as string, `exclusive-${Date.now()}.jpg`);
+
+      const countdownStart =
+        minutes.trim() && seconds.trim()
+          ? parseInt(minutes, 10) * 60 + parseInt(seconds, 10)
+          : undefined;
+
+      const percentDiscount = discount.trim() ? parseFloat(discount) : undefined;
+      const priceDollars = price.trim() ? parseFloat(price) : 0;
+      const priceCents = Math.round(priceDollars * 100);
+
+      const fakePriceCents =
+        percentDiscount !== undefined && percentDiscount > 0
+          ? Math.round((priceDollars / (1 - percentDiscount / 100)) * 100)
+          : undefined;
+
+      const cropWidth = Math.round(croppedAreaPixels?.width ?? 100);
+      const cropHeight = Math.round(croppedAreaPixels?.height ?? 100);
+      const cropX = Math.round(croppedAreaPixels?.x ?? 0);
+      const cropY = Math.round(croppedAreaPixels?.y ?? 0);
+
+      const input: UploadExclusiveContentInput = {
+        file,
+        price: priceCents,
+        fakePrice: fakePriceCents,
+        title: title.trim(),
+        titleColor,
+        cropWidth,
+        cropHeight,
+        cropX,
+        cropY,
+        icon: undefined,
+        countdownStart,
+        percentDiscount,
+        description: title.trim(),
+      };
+
+      await uploadExclusiveContent(bioId, input);
+      onContinue();
+    } catch (err: any) {
+      setServerError(err?.message || 'Failed to upload content. Please try again.');
+    }
+  }, [
+    bioId,
+    croppedAreaPixels?.height,
+    croppedAreaPixels?.width,
+    croppedAreaPixels?.x,
+    croppedAreaPixels?.y,
+    dataUrlToFile,
+    discount,
+    minutes,
+    onContinue,
+    price,
+    seconds,
+    title,
+    titleColor,
+    uploadExclusiveContent,
+    uploadedImage,
+    isFormValid,
+  ]);
 
   return (
     <Box sx={containerStyles}>
@@ -607,17 +700,41 @@ const UploadContentStep = ({ onContinue }: UploadContentStepProps) => {
       </Box>
 
       <Box sx={{ mt: 2, width: '100%' }}>
+        {serverError && (
+          <Typography
+            sx={{
+              fontSize: 'var(--font-size-onboarding-sm)',
+              color: '#dc2626',
+              mb: 1.5,
+            }}
+          >
+            {serverError}
+          </Typography>
+        )}
         <Box sx={{ mt: 3 }}>
           <Button
             variant={isFormValid ? 'primary-dark' : 'primary-light'}
             fullWidth
             sx={buttonStyles}
-            onClick={onContinue}
+            onClick={handleContinue}
+            loading={uploading}
+            disabled={uploading}
           >
             Continue
           </Button>
         </Box>
-        <Typography component="button" onClick={onContinue} sx={skipButtonStyles}>
+        <Typography
+          component="button"
+          onClick={() => {
+            if (uploading) return;
+            onContinue();
+          }}
+          sx={{
+            ...skipButtonStyles,
+            opacity: uploading ? 0.5 : 1,
+            cursor: uploading ? 'not-allowed' : 'pointer',
+          }}
+        >
           Skip for Now
         </Typography>
       </Box>

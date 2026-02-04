@@ -9,6 +9,7 @@ import { CalendarOnly } from './CalendarOnly';
 import { useMyAccount } from '../../../contexts/MyAccountContext';
 import { useUpdateBio } from '../../../hooks/useProfileApi';
 import type { UpdateBioInput } from '../../../api/types';
+import Loader from '../../../components/Loader';
 
 const Container = styled(Box)({
   maxWidth: 'var(--width-settings-container)',
@@ -382,7 +383,6 @@ export default function MyAccount() {
           ...prev,
           smsAlerts: !checked,
         }));
-        console.error('Failed to update SMS alerts:', error);
         // You can add toast notification here
       }
     }
@@ -390,7 +390,6 @@ export default function MyAccount() {
 
   const handleSave = async () => {
     if (!user) {
-      console.error('User data not available');
       return;
     }
 
@@ -437,7 +436,6 @@ export default function MyAccount() {
       // Note: Email and phone are read-only, so we don't update them
       // SMS alerts are handled separately via handleSMSAlertsToggle
     } catch (error) {
-      console.error('Save error:', error);
       // You can add toast notification here
       throw error; // Re-throw to let caller handle it
     }
@@ -448,7 +446,7 @@ export default function MyAccount() {
     return (
       <Box sx={containerBoxStyles}>
         <Title>My Account</Title>
-        <Typography>Loading...</Typography>
+        <Loader fullScreen={false} />
       </Box>
     );
     }

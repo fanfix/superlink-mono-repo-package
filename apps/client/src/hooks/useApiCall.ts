@@ -60,27 +60,11 @@ export function useApiCall<TData, TParams extends any[] = any[]>(
   const execute = useCallback(
     async (...params: TParams): Promise<TData | undefined> => {
       const currentApiFunction = apiFunctionRef.current;
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log('useApiCall: Executing API function', {
-          functionName: currentApiFunction.name || 'anonymous',
-          params,
-        });
-      }
-      
       setLoading(true);
       setError(null);
 
       try {
         const result = await currentApiFunction(...params);
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('useApiCall: API call successful', {
-            functionName: currentApiFunction.name || 'anonymous',
-            hasData: !!result,
-          });
-        }
-        
         setData(result);
         
         if (onSuccessRef.current) {
@@ -89,13 +73,6 @@ export function useApiCall<TData, TParams extends any[] = any[]>(
         
         return result;
       } catch (err: any) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('useApiCall: API call failed', {
-            functionName: currentApiFunction.name || 'anonymous',
-            error: err.message || err,
-          });
-        }
-        
         // Create ApiError if not already one
         const apiError = err instanceof ApiError ? err : createApiError(err);
         setError(apiError);

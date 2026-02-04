@@ -33,13 +33,15 @@ export interface AgencyStatus {
 
 export const getAgencyStatusApi = async (bioId: string): Promise<AgencyStatus | null> => {
   try {
-    const response = await restClient.post<AgencyStatus>(`/agency/status`, { bioId });
+    // 404 means "no agency connected/invited" for this bioId.
+    // Treat it as a valid response to avoid noisy console errors from the global interceptor.
+    const response = await restClient.post<AgencyStatus>(`/agency/status`, { bioId }, {
+      validateStatus: (status) => (status >= 200 && status < 300) || status === 404,
+    });
+
+    if (response.status === 404) return null;
     return response.data;
   } catch (error: any) {
-    // If no agency, return null
-    if (error.response?.status === 404) {
-      return null;
-    }
     throw createApiError(error);
   }
 };

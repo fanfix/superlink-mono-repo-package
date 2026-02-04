@@ -102,7 +102,6 @@ export function TippingHistoryProvider({ children, autoFetch = true }: TippingHi
       
       setTippingGroups(groups);
     } catch (err: any) {
-      console.error('Failed to fetch tipping history:', err);
       setError(err);
       setTippingGroups([]);
     } finally {

@@ -60,7 +60,6 @@ export default function AddEmbedModal({ open, onClose, onAdd, customSectionId }:
           setName('');
         }
       } catch (error) {
-        console.error('Error detecting platform:', error);
         // Fallback to platform detection even on error
         const platform = getEmbedPlatform(trimmedUrl);
         if (platform) {
@@ -123,7 +122,6 @@ export default function AddEmbedModal({ open, onClose, onAdd, customSectionId }:
       });
       handleClose();
     } catch (error) {
-      console.error('Error adding embed:', error);
     } finally {
       setLoading(false);
     }
@@ -224,7 +222,7 @@ export default function AddEmbedModal({ open, onClose, onAdd, customSectionId }:
         )}
 
         <Box sx={embedModalStyles.actionsContainer}>
-          <Button variant="secondary" onClick={handleClose}>
+          <Button variant="primary-light" onClick={handleClose}>
             Cancel
           </Button>
           <Button 

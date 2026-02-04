@@ -209,7 +209,6 @@ export default function ManageAccess() {
       setSearchQuery('');
       clearSearch();
     } catch (error) {
-      console.error('Failed to invite agency:', error);
       // You can add toast notification here
     }
   };
@@ -224,7 +223,6 @@ export default function ManageAccess() {
       await revokeAgencyAccess({ agencyId: invitedAgency.id });
       setShowRevokeModal(false);
     } catch (error) {
-      console.error('Failed to revoke access:', error);
       // You can add toast notification here
     }
   };
@@ -332,7 +330,7 @@ export default function ManageAccess() {
                     <AgencyName>{agency.name}</AgencyName>
                   </AgencyInfo>
                   <InviteButton
-                    variant="secondary"
+                    variant="primary-light"
                     onClick={() => handleInviteClick(agency)}
                     disabled={!!invitedAgency || inviting}
                     startIcon={<Add sx={{ fontSize: 'var(--icon-size-sm)' }} />}
@@ -424,7 +422,7 @@ export default function ManageAccess() {
                 Yes
               </Button>
               <Button
-                variant="secondary"
+                variant="primary-light"
                 onClick={() => setShowInviteModal(false)}
                 disabled={inviting}
                 sx={{ flex: 1 }}
@@ -482,7 +480,7 @@ export default function ManageAccess() {
                 {invitedAgency?.accepted ? 'Remove' : 'Okay'}
               </Button>
               <Button
-                variant="secondary"
+                variant="primary-light"
                 onClick={() => setShowRevokeModal(false)}
                 disabled={revoking}
                 sx={{ flex: 1 }}

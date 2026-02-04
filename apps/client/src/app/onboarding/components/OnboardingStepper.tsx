@@ -3,7 +3,12 @@
 import { Box } from '@mui/material';
 import { Typography } from '@superline/design-system';
 
-export type OnboardingStepKey = 'personal-info' | 'create-account' | 'social-links' | 'upload-content';
+export type OnboardingStepKey =
+  | 'personal-info'
+  | 'create-account'
+  | 'social-links'
+  | 'upload-content'
+  | 'stripe-connect';
 
 export interface OnboardingStepConfig {
   id: OnboardingStepKey;

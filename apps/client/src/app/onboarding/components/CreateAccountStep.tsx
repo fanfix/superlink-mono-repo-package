@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Box, InputAdornment } from '@mui/material';
 import { Button, TextField, Typography } from '@superline/design-system';
+import { useCheckUsernameAvailability } from '../../../hooks/useOnboardingApi';
 
 interface CreateAccountStepProps {
   onContinue: (data: { username: string }) => void;
@@ -116,11 +117,49 @@ const termsTextStyles = {
 const CreateAccountStep = ({ onContinue }: CreateAccountStepProps) => {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
+  const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
+  const availabilityRequestId = useRef(0);
+
+  const { execute: checkUsernameAvailability, loading: checkingAvailability } = useCheckUsernameAvailability();
 
   const validateUsername = (username: string) => {
     const usernameRegex = /^[a-zA-Z0-9_]+$/;
     return usernameRegex.test(username);
   };
+
+  // Debounced username availability check
+  useEffect(() => {
+    const trimmed = username.trim();
+    setIsAvailable(null);
+
+    if (!trimmed || trimmed.length < 3 || trimmed.length > 30 || !validateUsername(trimmed)) {
+      return;
+    }
+
+    const currentRequest = ++availabilityRequestId.current;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await checkUsernameAvailability(trimmed);
+        if (!res || currentRequest !== availabilityRequestId.current) return;
+
+        setIsAvailable(res.available);
+        if (res.available) {
+          // Clear "already exists" error if user fixed it
+          if (error.toLowerCase().includes('already')) setError('');
+        } else {
+          setError('This username already exists');
+        }
+      } catch (err: any) {
+        if (currentRequest !== availabilityRequestId.current) return;
+        setIsAvailable(null);
+        // Don't block user with a hard error; show message + keep continue disabled
+        setError(err?.message || 'Unable to check username availability');
+      }
+    }, 450);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [username]);
 
   const handleContinue = () => {
     const trimmedUsername = username.trim();
@@ -146,11 +185,16 @@ const CreateAccountStep = ({ onContinue }: CreateAccountStepProps) => {
       return;
     }
 
+    if (isAvailable !== true) {
+      setError('Please choose an available username');
+      return;
+    }
+
     setError('');
     onContinue({ username: trimmedUsername });
   };
 
-  const isFormValid = username.trim().length >= 3 && validateUsername(username.trim());
+  const isFormValid = username.trim().length >= 3 && validateUsername(username.trim()) && isAvailable === true;
 
   return (
     <Box sx={containerStyles}>
@@ -173,7 +217,14 @@ const CreateAccountStep = ({ onContinue }: CreateAccountStepProps) => {
               if (error) setError('');
             }}
             error={!!error}
-            helperText={error}
+            helperText={
+              error ||
+              (checkingAvailability
+                ? 'Checking availability...'
+                : isAvailable === true
+                  ? 'Username is available'
+                  : '')
+            }
             fullWidth
             InputProps={{
               startAdornment: (
@@ -195,6 +246,7 @@ const CreateAccountStep = ({ onContinue }: CreateAccountStepProps) => {
           fullWidth
           sx={buttonStyles}
           onClick={handleContinue}
+          disabled={!isFormValid || checkingAvailability}
         >
           Continue
         </Button>

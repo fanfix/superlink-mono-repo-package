@@ -52,9 +52,7 @@ export default function ImageCropModal({
         .then((cropped) => {
           setPreviewImage(cropped);
         })
-        .catch((error) => {
-          console.error('Error generating preview:', error);
-        });
+        .catch(() => undefined);
     }
   }, [tempImage, croppedAreaPixels]);
 
@@ -72,7 +70,6 @@ export default function ImageCropModal({
       onSave(file);
       onClose();
     } catch (error) {
-      console.error('Error cropping image:', error);
     } finally {
       setIsSaving(false);
     }

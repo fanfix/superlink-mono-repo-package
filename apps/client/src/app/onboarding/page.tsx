@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useLayoutEffect } from 'react';
+import React, { useMemo, useState, useLayoutEffect } from 'react';
 import { Box, Link as MuiLink } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import AuthLayout from '../../components/AuthLayout';
@@ -10,15 +10,17 @@ import PersonalInfoStep from './components/PersonalInfoStep';
 import CreateAccountStep from './components/CreateAccountStep';
 import SocialLinksStep from './components/SocialLinksStep';
 import UploadContentStep from './components/UploadContentStep';
+import StripeConnectStep from './components/StripeConnectStep';
 import { useAuth } from '../../contexts/AuthContext';
-import { redirectIfAuthenticated } from '../../lib/authGuard';
 import Loader from '../../components/Loader';
+import { useCheckIfPhoneAndEmailExists, useOnboardUser } from '../../hooks/useOnboardingApi';
 
 const STEPS: OnboardingStepConfig[] = [
   { id: 'personal-info', label: 'Personal Info' },
   { id: 'create-account', label: 'Create Account' },
   { id: 'social-links', label: 'Social Links' },
   { id: 'upload-content', label: 'Upload Content' },
+  { id: 'stripe-connect', label: 'Stripe' },
 ];
 
 // Style variables
@@ -71,7 +73,7 @@ const stepContentContainerStyles = {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading, userState, currentUser } = useAuth();
+  const { isAuthenticated, isLoading, userState, currentUser, refreshAuth } = useAuth();
   const [activeStepId, setActiveStepId] = useState<OnboardingStepKey>('personal-info');
   const [onboardingDataState, setOnboardingDataState] = useState({
     name: '',
@@ -80,6 +82,18 @@ export default function OnboardingPage() {
   });
   const [shouldRender, setShouldRender] = useState(false);
 
+  const { execute: checkPhoneEmail } = useCheckIfPhoneAndEmailExists();
+  const { execute: onboardUser } = useOnboardUser();
+
+  const phoneNumber = useMemo(() => {
+    return (
+      currentUser?.phoneNumber ||
+      userState?.phoneNumber ||
+      userState?.phone ||
+      ''
+    );
+  }, [currentUser?.phoneNumber, userState?.phoneNumber, userState?.phone]);
+
   // useLayoutEffect runs synchronously before paint - prevents flash
   useLayoutEffect(() => {
     if (typeof window === 'undefined') {
@@ -87,24 +101,25 @@ export default function OnboardingPage() {
       return;
     }
 
-    // Use auth context to prevent duplicate API calls
     const checkAndRedirect = async () => {
       if (isLoading) {
         return; // Still loading, wait
       }
 
-      const result = await redirectIfAuthenticated(router, {
-        userState,
-        currentUser,
-        isAuthenticated,
-        isLoading,
-      });
-
-      if (result.shouldRedirect) {
-        return; // Redirecting, don't render
+      // Must be authenticated (OTP/token) to access onboarding
+      if (!isAuthenticated) {
+        router.push('/login');
+        return;
       }
 
-      // No redirect needed - show page
+      // If user already has a bio, only redirect away when NOT in an active onboarding flow
+      const hasBio = !!(currentUser?.bio?.id || userState?.bio?.id);
+      const onboardingInProgress = sessionStorage.getItem('onboarding-in-progress') === 'true';
+      if (hasBio && !onboardingInProgress) {
+        router.push('/creator/myPage');
+        return;
+      }
+
       setShouldRender(true);
     };
 
@@ -126,10 +141,11 @@ export default function OnboardingPage() {
     // Mark onboarding as complete
     if (typeof window !== 'undefined') {
       localStorage.setItem('onboarding-complete', 'true');
+      sessionStorage.removeItem('onboarding-in-progress');
       sessionStorage.removeItem('auth-flow');
     }
     // Redirect to creator/myPage
-    router.push('/creator/myPage');
+    router.replace('/creator/myPage');
   };
 
   const goBack = () => {
@@ -143,7 +159,16 @@ export default function OnboardingPage() {
       case 'personal-info':
         return (
           <PersonalInfoStep
-            onContinue={(data) => {
+            onContinue={async (data) => {
+              if (!phoneNumber) {
+                throw new Error('Phone number not found. Please verify OTP again.');
+              }
+
+              const result = await checkPhoneEmail({ email: data.email, phone: phoneNumber });
+              if (!result?.message || result.message !== 'OK') {
+                throw new Error(result?.message || 'Unable to verify email/phone. Please try again.');
+              }
+
               setOnboardingDataState((prev) => ({ ...prev, ...data }));
               goNext();
             }}
@@ -159,13 +184,50 @@ export default function OnboardingPage() {
           />
         );
       case 'social-links':
-        return <SocialLinksStep onContinue={goNext} />;
+        return (
+          <SocialLinksStep
+            onContinue={async (socialLinks) => {
+              const { name, email, username } = onboardingDataState;
+              if (!name || !email || !username) {
+                throw new Error('Missing onboarding data. Please complete previous steps.');
+              }
+
+              await onboardUser({
+                name,
+                isFan: false,
+                introMessage: '',
+                socialLinks,
+                email,
+                pageName: username,
+              });
+
+              // Refresh auth so bio becomes available for next steps
+              await refreshAuth(true);
+              goNext();
+            }}
+          />
+        );
       case 'upload-content':
-        return <UploadContentStep onContinue={goNext} />;
+        return (
+          <UploadContentStep
+            onContinue={async () => {
+              // Ensure we have latest user data before leaving onboarding
+              await refreshAuth(true);
+              goNext();
+            }}
+          />
+        );
+      case 'stripe-connect':
+        return <StripeConnectStep onLater={handleOnboardingComplete} />;
       default:
-        return <PersonalInfoStep onContinue={goNext} />;
+        return <PersonalInfoStep onContinue={async () => goNext()} />;
     }
   };
+
+  // Show loader while checking auth/redirecting
+  if (isLoading || !shouldRender) {
+    return <Loader fullScreen={true} />;
+  }
 
   return (
     <AuthLayout>

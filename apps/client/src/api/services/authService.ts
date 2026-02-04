@@ -164,34 +164,7 @@ export const changePasswordApi = async (
  */
 export const sendOTPApi = async (payload: SendOTPRequest): Promise<SendOTPResponse> => {
   try {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Send OTP Request:', {
-        endpoint: AUTH_ENDPOINTS.SEND_OTP,
-        phoneNumber: payload.phoneNumber,
-        hasCaptchaToken: !!payload.captchaToken,
-      });
-    }
-
-    // Log the exact payload being sent
-    console.log('Send OTP Payload:', JSON.stringify(payload, null, 2));
-    console.log('Send OTP Endpoint:', `${restClient.defaults.baseURL}${AUTH_ENDPOINTS.SEND_OTP}`);
-    console.log('Current origin:', typeof window !== 'undefined' ? window.location.origin : 'N/A');
-    
     const response = await restClient.post<SendOTPResponse>(AUTH_ENDPOINTS.SEND_OTP, payload);
-    
-    console.log('Send OTP Response Status:', response.status);
-    console.log('Send OTP Response Data:', response.data);
-    console.log('Send OTP Response Headers:', response.headers);
-    console.log('Send OTP Full Response Object:', {
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-      config: {
-        url: response.config?.url,
-        method: response.config?.method,
-        baseURL: response.config?.baseURL,
-      }
-    });
 
     // Check if response has error statusCode in body (backend returns 200 with error in body)
     if (response.data && typeof response.data === 'object') {
@@ -200,12 +173,6 @@ export const sendOTPApi = async (payload: SendOTPRequest): Promise<SendOTPRespon
       // Check if response contains error statusCode
       if (responseData.statusCode && responseData.statusCode !== 200 && responseData.statusCode >= 400) {
         const errorMessage = responseData.message || 'Request failed';
-        console.error('Send OTP API Error:', {
-          statusCode: responseData.statusCode,
-          message: errorMessage,
-          data: responseData
-        });
-        
         // Create error object that matches ApiError structure
         const error = new Error(errorMessage);
         (error as any).response = {
@@ -234,10 +201,6 @@ export const sendOTPApi = async (payload: SendOTPRequest): Promise<SendOTPRespon
     // Return default success message if structure is unexpected
     return { message: 'OTP sent successfully' };
   } catch (error: any) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Send OTP Error:', error);
-      console.error('Send OTP Error Response:', error?.response?.data);
-    }
     throw createApiError(error);
   }
 };
@@ -263,14 +226,6 @@ export const otpLoginApi = async (credentials: OTPLoginRequest): Promise<OTPLogi
  */
 export const getAuthStateApi = async (accessToken?: string): Promise<UserState> => {
   try {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[getAuthStateApi] Starting API call', {
-        endpoint: AUTH_ENDPOINTS.AUTH_STATE,
-        hasAccessToken: !!accessToken,
-        baseURL: restClient.defaults.baseURL,
-      });
-    }
-
     // If accessToken is provided, use it; otherwise restClient interceptor will use getAuthToken()
     const config = accessToken
       ? {
@@ -281,14 +236,6 @@ export const getAuthStateApi = async (accessToken?: string): Promise<UserState> 
       : undefined;
 
     const response = await restClient.get<UserState>(AUTH_ENDPOINTS.AUTH_STATE, config);
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[getAuthStateApi] Response received', {
-        status: response.status,
-        hasData: !!response.data,
-        dataKeys: response.data ? Object.keys(response.data) : [],
-      });
-    }
     
     // Check if response structure is correct
     if (!response || !response.data) {
@@ -301,26 +248,8 @@ export const getAuthStateApi = async (accessToken?: string): Promise<UserState> 
     if (!userState || !userState.id) {
       throw new Error('Invalid user state data received');
     }
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[getAuthStateApi] User state parsed successfully', {
-        userId: userState.id,
-        hasOnboarding: !!userState.onboarding,
-        hasBio: !!userState.bio,
-      });
-    }
-    
     return userState;
   } catch (error: any) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[getAuthStateApi] Error occurred', {
-        message: error?.message,
-        status: error?.response?.status,
-        data: error?.response?.data,
-        url: error?.config?.url,
-      });
-    }
-    
     // Handle 401 Unauthorized - clear auth (same as superlink-main)
     if (error.response?.status === 401) {
       clearAuth();
@@ -346,7 +275,6 @@ export const logoutApi = async (): Promise<void> => {
   } catch (error: any) {
     // Even if logout API fails, we should clear local auth
     // This matches superlink-main behavior
-    console.error('Logout API error:', error);
   } finally {
     // Always clear local auth regardless of API response
     clearAuth();

@@ -37,7 +37,7 @@ export default function AddPricingModal({ open, onClose, onAdd, onUpdate, onDele
     const trimmedTitle = title.trim();
     const trimmedPrice = price.trim();
 
-    if (trimmedTitle && trimmedPrice) {
+    if (trimmedTitle && trimmedPrice && onAdd) {
       onAdd({
         title: trimmedTitle,
         price: trimmedPrice,

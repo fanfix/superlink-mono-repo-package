@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { Box } from '@mui/material';
-import { Typography, Table, type TableColumn, type TableRow } from '@superline/design-system';
+import { Typography } from '@superline/design-system';
 import { styled } from '@mui/material/styles';
 import { useTippingHistory, transactionDateFormat } from '../../../contexts/TippingHistoryContext';
+import Loader from '../../../components/Loader';
 
 const Container = styled(Box)({
   maxWidth: 'var(--width-settings-container)',
@@ -58,50 +59,15 @@ export default function TippingHistory() {
     }))
   );
 
-  const columns: TableColumn[] = [
-    {
-      id: 'fanName',
-      label: 'Fan Name',
-      minWidth: 150,
-      align: 'left',
-    },
-    {
-      id: 'amount',
-      label: 'Amount',
-      minWidth: 120,
-      align: 'right',
-      format: (value: number) => `$${value.toFixed(2)}`,
-    },
-    {
-      id: 'date',
-      label: 'Date',
-      minWidth: 120,
-      align: 'left',
-      format: (value: string) => {
-        const date = new Date(value);
-        return date.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-        });
-      },
-    },
-  ];
-
-  const rows: TableRow[] = allTransactions.map((tip) => ({
-    fanName: tip.fanName,
-    amount: tip.amount,
-    date: tip.date,
-  }));
+  // NOTE: design-system Table types are not exported in this repo build.
+  // This screen renders a grouped list, so we don't need Table types here.
 
   // Show loading state
   if (loading) {
     return (
       <Container>
         <Title>Tipping History</Title>
-        <EmptyState>
-          <EmptyStateText>Loading...</EmptyStateText>
-        </EmptyState>
+        <Loader fullScreen={false} />
       </Container>
     );
   }

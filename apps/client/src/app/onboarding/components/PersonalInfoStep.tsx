@@ -5,7 +5,7 @@ import { Box } from '@mui/material';
 import { Button, TextField, Typography } from '@superline/design-system';
 
 interface PersonalInfoStepProps {
-  onContinue: (data: { name: string; email: string }) => void;
+  onContinue: (data: { name: string; email: string }) => void | Promise<void>;
 }
 
 // Style variables
@@ -86,13 +86,15 @@ const PersonalInfoStep = ({ onContinue }: PersonalInfoStepProps) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+  const [serverError, setServerError] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     const newErrors: { name?: string; email?: string } = {};
 
     // Validate name
@@ -114,7 +116,15 @@ const PersonalInfoStep = ({ onContinue }: PersonalInfoStepProps) => {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      onContinue({ name: name.trim(), email: email.trim() });
+      setServerError('');
+      setLoading(true);
+      try {
+        await onContinue({ name: name.trim(), email: email.trim() });
+      } catch (err: any) {
+        setServerError(err?.message || 'Something went wrong. Please try again.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -166,11 +176,25 @@ const PersonalInfoStep = ({ onContinue }: PersonalInfoStepProps) => {
       </Box>
 
       <Box sx={{ mt: 3 }}>
+        {serverError && (
+          <Typography
+            sx={{
+              fontSize: 'var(--font-size-onboarding-sm)',
+              color: '#dc2626',
+              mb: 1.5,
+              maxWidth: 'var(--width-onboarding-container-sm)',
+            }}
+          >
+            {serverError}
+          </Typography>
+        )}
         <Button
           variant={isFormValid ? 'primary-dark' : 'primary-light'}
           fullWidth
           sx={buttonStyles}
           onClick={handleContinue}
+          disabled={!isFormValid || loading}
+          loading={loading}
         >
           Continue
         </Button>

@@ -87,6 +87,9 @@ export function setAuthToken(token: string): void {
   
   // Also store in cookie (superlink-main compatibility)
   setCookie(ACCESS_TOKEN_KEY, token, COOKIE_EXPIRY_DAYS);
+
+  // Notify same-tab listeners (storage event doesn't fire in same tab)
+  window.dispatchEvent(new Event('auth-token-changed'));
 }
 
 /**
@@ -99,6 +102,8 @@ export function removeAuthToken(): void {
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   removeCookie(ACCESS_TOKEN_KEY);
+
+  window.dispatchEvent(new Event('auth-token-changed'));
 }
 
 /**

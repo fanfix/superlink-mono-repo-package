@@ -132,10 +132,40 @@ export const useUpdateBrandKitItem = () => {
  */
 export const useDeleteBrandKitItem = () => {
   const { deleteBrandKitItem, deletingItem, error } = useBrandKit();
-  
+
   return {
     execute: deleteBrandKitItem,
     loading: deletingItem,
+    error,
+  };
+};
+
+/**
+ * Hook for upload and create brand kit
+ * Sequential flow: Upload file -> Get URL -> Create Brand Kit with URL
+ * Uses BrandKitContext - data flows: Context -> Hook -> Component
+ */
+export const useUploadAndCreateBrandKit = () => {
+  const { uploadAndCreateBrandKit, uploading, creating, error } = useBrandKit();
+
+  return {
+    execute: uploadAndCreateBrandKit,
+    loading: uploading || creating,
+    error,
+  };
+};
+
+/**
+ * Hook for upload and update brand kit
+ * Sequential flow: Upload file -> Get URL -> Update Brand Kit with URL
+ * Uses BrandKitContext - data flows: Context -> Hook -> Component
+ */
+export const useUploadAndUpdateBrandKit = () => {
+  const { uploadAndUpdateBrandKit, uploading, updating, error } = useBrandKit();
+
+  return {
+    execute: uploadAndUpdateBrandKit,
+    loading: uploading || updating,
     error,
   };
 };

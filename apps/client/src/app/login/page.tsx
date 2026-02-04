@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useLayoutEffect, Suspense } from 'react';
+import React, { useEffect, useState, useLayoutEffect, Suspense } from 'react';
 import { Box } from '@mui/material';
 import { Button, Typography } from '@superline/design-system';
-import PhoneInput from 'react-phone-number-input';
 import { isValidPhoneNumber } from 'react-phone-number-input';
+import PhoneInput from 'react-phone-input-2';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import AuthLayout from '../../components/AuthLayout';
@@ -18,7 +18,9 @@ function LoginContent() {
   const router = useRouter();
   const { execute: sendOTP, loading: sendOTPLoading } = useSendOTP();
   const { isAuthenticated, isLoading, userState, currentUser } = useAuth();
-  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  // react-phone-input-2 expects digits only (no leading "+")
+  const [phoneDigits, setPhoneDigits] = useState<string>('');
+  const [defaultCountry, setDefaultCountry] = useState<string>('us');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [shouldRender, setShouldRender] = useState(false);
@@ -53,6 +55,27 @@ function LoginContent() {
 
     checkAndRedirect();
   }, [router, isAuthenticated, isLoading, userState, currentUser]);
+
+  // Detect origin/country for default phone code (via internal API)
+  useEffect(() => {
+    let cancelled = false;
+    const detect = async () => {
+      try {
+        const res = await fetch('/api/origin', { method: 'GET' });
+        const json = (await res.json()) as { country?: string };
+        const code = (json.country || '').toLowerCase();
+        if (!cancelled && /^[a-z]{2}$/.test(code)) {
+          setDefaultCountry(code);
+        }
+      } catch {
+        // Ignore; fall back to US
+      }
+    };
+    detect();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Styling variables
   const containerStyles = {
@@ -93,18 +116,17 @@ function LoginContent() {
     width: '100%',
     marginBottom: 'var(--padding-2xl)',
     position: 'relative',
-    '& .PhoneInput': {
+    '& .react-tel-input': {
       width: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 'var(--padding-md)',
+      fontFamily: 'inherit',
     },
-    '& .PhoneInputInput': {
-      flex: 1,
+    '& .react-tel-input .form-control': {
+      width: '100% !important',
       border: 'none',
       outline: 'none',
       fontSize: 'var(--font-size-md-1)',
-      padding: 'var(--padding-lg) 0',
+      // reduced left padding to match design
+      padding: 'var(--padding-lg) 0 var(--padding-lg) 58px',
       backgroundColor: 'transparent',
       color: 'var(--color-gray-800)',
       fontFamily: 'inherit',
@@ -113,43 +135,61 @@ function LoginContent() {
         opacity: 1,
       },
     },
-    '& .PhoneInputCountry': {
-      marginRight: '0',
-      display: 'flex',
-      alignItems: 'center',
-    },
-    '& .PhoneInputCountrySelect': {
-      padding: 'var(--padding-lg) var(--padding-md) var(--padding-lg) 0',
-      border: 'none',
+    '& .react-tel-input .flag-dropdown': {
       backgroundColor: 'transparent',
-      fontSize: 'var(--font-size-md-1)',
-      color: 'var(--color-gray-800)',
+      border: 'none',
       cursor: 'pointer',
-      fontFamily: 'inherit',
+      width: '56px',
+    },
+    '& .react-tel-input .selected-flag': {
+      backgroundColor: 'transparent !important',
+      padding: '0',
+      width: '56px',
       display: 'flex',
       alignItems: 'center',
-      gap: 'var(--padding-xs)',
-      '&:focus': {
-        outline: 'none',
-      },
+      justifyContent: 'flex-start',
+      position: 'relative',
+      overflow: 'visible',
     },
-    '& .PhoneInputCountryIcon': {
-      display: 'none !important',
+    '& .react-tel-input .selected-flag .dial-code, & .react-tel-input .selected-flag .selected-dial-code': {
+      color: 'var(--color-gray-800)',
+      fontSize: 'var(--font-size-md-1)',
+      fontFamily: 'inherit',
+      fontWeight: 500,
+      paddingRight: '16px', // keep space for chevron
     },
-    '& .PhoneInputCountryIconImg': {
-      display: 'none !important',
-    },
-    '& .PhoneInputCountrySelectArrow': {
-      opacity: 1,
-      color: 'var(--color-gray-500)',
-      width: 'var(--font-size-icon-sm-1)',
-      height: 'var(--font-size-icon-sm-1)',
-      marginLeft: 'var(--padding-xs)',
+    // Force dropdown chevron to always show (independent of library arrow element)
+    '& .react-tel-input .selected-flag::after': {
+      content: '""',
+      position: 'absolute',
+      right: '32px',
+      top: '50%',
+      width: '9px',
+      height: '9px',
+      transform: 'translateY(-50%) rotate(45deg)',
       borderStyle: 'solid',
       borderWidth: '0 1px 1px 0',
       borderColor: 'var(--color-gray-500)',
-      transform: 'rotate(45deg)',
-      display: 'inline-block',
+      pointerEvents: 'none',
+    },
+    '& .react-tel-input .flag-dropdown.open .selected-flag::after': {
+      transform: 'translateY(-50%) rotate(-135deg)',
+    },
+    '& .react-tel-input .country-list': {
+      borderRadius: '12px',
+      boxShadow: '0 8px 30px rgba(17, 24, 39, 0.12)',
+      border: '1px solid rgba(0,0,0,0.06)',
+      marginTop: '8px',
+      width: '260px',
+    },
+    '& .react-tel-input .search-box': {
+      width: '100%',
+      borderRadius: '10px',
+      border: '1px solid rgba(0,0,0,0.08)',
+      padding: '10px 12px',
+      outline: 'none',
+      fontSize: '14px',
+      fontFamily: 'inherit',
     },
   };
 
@@ -185,47 +225,33 @@ function LoginContent() {
 
   const handleContinue = async () => {
     setError('');
+    const phoneE164 = phoneDigits ? `+${phoneDigits}` : '';
 
     // Validation
-    if (!phoneNumber) {
+    if (!phoneDigits) {
       setError('Phone number is required');
       return;
     }
 
-    // Normalize phone number
-    const normalizedPhone = phoneNumber.trim();
-    
     // Validate phone format
-    if (!isValidPhoneNumber(phoneNumber)) {
+    if (!isValidPhoneNumber(phoneE164)) {
       setError('Please enter a valid phone number');
       return;
     }
 
-    setLoading(true);
-
     try {
-      // Step 1: Get reCAPTCHA token
-      console.error('🔵 [LOGIN] About to call getRecaptchaTokenForSendOTP');
-      console.log('[LOGIN] About to call getRecaptchaTokenForSendOTP');
-      const captchaToken = await getRecaptchaTokenForSendOTP();
-      console.error('🔵 [LOGIN] Got captcha token, length:', captchaToken?.length);
-
-      // Step 2: Call send OTP API with phone number and captcha token
-      const response = await sendOTP({
-        phoneNumber: normalizedPhone,
-        captchaToken,
-      });
-
-      // Step 3: Store phone in sessionStorage for OTP verification
+      // Store phone + flow in sessionStorage for OTP verification
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('login-phone', normalizedPhone);
+        sessionStorage.setItem('login-phone', phoneE164);
         sessionStorage.setItem('auth-flow', 'login');
+        // Let OTP page send the OTP (keeps navigation instant)
+        sessionStorage.setItem('otp-auto-send', 'true');
       }
 
-      // Step 4: Redirect to OTP verification
-      router.push(`/otp-verify?phone=${encodeURIComponent(normalizedPhone)}`);
+      // Redirect to OTP verification immediately (no waiting on API)
+      setLoading(true);
+      router.push(`/otp-verify?phone=${encodeURIComponent(phoneE164)}`);
     } catch (err: any) {
-      console.error('Login error:', err);
       const errorMessage = err?.response?.data?.message || err?.message || 'Login failed. Please try again.';
       setError(errorMessage);
       setLoading(false);
@@ -233,7 +259,8 @@ function LoginContent() {
   };
 
   // Check if phone is valid format
-  const isPhoneValid = phoneNumber && isValidPhoneNumber(phoneNumber);
+  const phoneE164 = phoneDigits ? `+${phoneDigits}` : '';
+  const isPhoneValid = phoneE164 && isValidPhoneNumber(phoneE164);
 
   // Show loader while checking (only if token exists)
   if (isLoading || !shouldRender) {
@@ -286,16 +313,14 @@ function LoginContent() {
         <Box sx={phoneInputContainerStyles}>
           <Box sx={phoneInputBorderStyles}>
             <PhoneInput
-              international
-              defaultCountry="US"
-              value={phoneNumber}
-              onChange={(value: string | undefined) => setPhoneNumber(value || '')}
+              country={defaultCountry}
+              value={phoneDigits}
+              onChange={(value: string) => setPhoneDigits(value || '')}
               placeholder="Enter phone number"
-              numberInputProps={{
-                style: {
-                  width: '100%',
-                },
-              }}
+              countryCodeEditable={false}
+              enableSearch={true}
+              disableSearchIcon={true}
+              inputProps={{ autoComplete: 'tel' }}
             />
           </Box>
         </Box>

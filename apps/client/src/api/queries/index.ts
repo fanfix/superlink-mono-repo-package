@@ -818,3 +818,19 @@ export const UPDATE_USER_MUTATION = `
   }
 `;
 
+// ==================== Onboarding Queries/Mutations ====================
+export const CHECK_IF_PHONE_AND_EMAIL_EXISTS_QUERY = `
+  query Query($email: String!, $phone: String!) {
+    checkIfPhoneAndEmailExists(email: $email, phone: $phone)
+  }
+`;
+
+export const ONBOARD_USER_MUTATION = `
+  mutation OnboardUser($onboardUserInput: OnboardUserInput!) {
+    onboardUser(onboardUserInput: $onboardUserInput) {
+      id
+      __typename
+    }
+  }
+`;
+

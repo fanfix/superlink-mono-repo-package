@@ -6,7 +6,7 @@
 import restClient from '../config/restClient';
 import { executeGraphQL } from '../config/graphqlClient';
 import { PRICE_CHANGE_MUTATION } from '../queries';
-import { StripeConnectResponse, createApiError, PriceChangeResponse } from '../types';
+import { createApiError, PriceChangeResponse } from '../types';
 
 /**
  * Get Stripe Connect URL (to connect Stripe account)
@@ -55,13 +55,6 @@ export const getStripeConnectStatusApi = async (): Promise<StripeConnectStatus |
  */
 export interface PriceChangeInput {
   price: number;
-}
-
-export interface PriceChangeResponse {
-  id: string;
-  createdAt: string;
-  price: number;
-  __typename?: string;
 }
 
 export const priceChangeApi = async (price: number): Promise<PriceChangeResponse> => {

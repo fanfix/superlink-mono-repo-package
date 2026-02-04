@@ -81,7 +81,6 @@ export function MonetizationProvider({ children, autoFetch = true }: Monetizatio
       const status = await getStripeConnectStatusApi();
       setPaymentMethod(status);
     } catch (err: any) {
-      console.error('Failed to fetch payment method:', err);
       setError(err);
       setPaymentMethod(null);
     } finally {
@@ -118,7 +117,6 @@ export function MonetizationProvider({ children, autoFetch = true }: Monetizatio
         refreshPaymentMethod();
       }, 1000);
     } catch (err: any) {
-      console.error('Failed to connect Stripe:', err);
       setError(err);
       throw err;
     } finally {
@@ -142,7 +140,6 @@ export function MonetizationProvider({ children, autoFetch = true }: Monetizatio
       // Refresh user data to get latest state
       await refreshUser();
     } catch (err: any) {
-      console.error('Failed to update tipping:', err);
       setError(err);
       throw err;
     }
@@ -164,7 +161,6 @@ export function MonetizationProvider({ children, autoFetch = true }: Monetizatio
       // Refresh user data to get latest state
       await refreshUser();
     } catch (err: any) {
-      console.error('Failed to update messaging:', err);
       setError(err);
       throw err;
     }
@@ -183,7 +179,6 @@ export function MonetizationProvider({ children, autoFetch = true }: Monetizatio
       // Refresh user data to get latest state
       await refreshUser();
     } catch (err: any) {
-      console.error('Failed to update message price:', err);
       setError(err);
       throw err;
     }

@@ -6,6 +6,7 @@
 import { executeGraphQL } from '../config/graphqlClient';
 import {
   Chat,
+  ChannelsResponse,
   Message,
   SendMessageInput,
   SendMessageResponse,

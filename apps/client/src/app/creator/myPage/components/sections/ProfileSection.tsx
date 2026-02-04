@@ -186,10 +186,25 @@ export default function ProfileSection({
   };
 
   const urlInputStyles = {
-    ...sharedModalStyles.input,
+    width: '100%',
     '& .MuiOutlinedInput-input': {
-      ...sharedModalStyles.input['& .MuiOutlinedInput-input'],
+      paddingTop: 'var(--padding-md)',
+      paddingBottom: 'var(--padding-md)',
       paddingLeft: 'var(--width-mypage-profile-container)',
+      paddingRight: 'var(--padding-mypage-2xl)',
+      fontSize: 'var(--font-size-md-1)',
+      color: 'var(--color-gray-800)',
+      lineHeight: '1.5',
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'var(--color-gray-200)',
+      borderWidth: 'var(--border-mypage-width-xs)',
+    },
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'var(--color-gray-300)',
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'var(--color-gray-400)',
     },
   };
 
@@ -768,9 +783,7 @@ export default function ProfileSection({
       <VerifiedCreatorModal
         open={isVerifiedCreatorModalOpen}
         onClose={() => setIsVerifiedCreatorModalOpen(false)}
-        onContinue={() => {
-          console.log('Continue to Stripe verification');
-        }}
+        onContinue={() => undefined}
       />
 
       <ImageCropModal

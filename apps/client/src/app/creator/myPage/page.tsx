@@ -13,6 +13,7 @@ import type { ContentItem, CustomSection, TextSection, BrandKitItem, Engagement,
 import type { UploadContentData } from './components/UploadContentModal/types';
 import { getSocialIcon } from './components/sections/SocialLinksSection/utils/getSocialIcon';
 import { useAuth } from '../../../contexts/AuthContext';
+import Loader from '../../../components/Loader';
 import {
   useGetCurrentUser,
   useUpdateBio,
@@ -167,13 +168,10 @@ export default function MyPage() {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        setIsLoadingData(true);
-        
         // First: Get current user to get bioId and all user data
         const currentUser = await getCurrentUser();
         
         if (!currentUser) {
-          console.error('No current user found');
           setIsLoadingData(false);
           return;
         }
@@ -321,10 +319,8 @@ export default function MyPage() {
             }
           }
         } else {
-          console.warn('No bioId found in currentUser');
         }
       } catch (error) {
-        console.error('Error loading initial data:', error);
       } finally {
         setIsLoadingData(false);
       }
@@ -401,7 +397,6 @@ export default function MyPage() {
         showToast('Content added successfully', 'success');
       }
     } catch (error) {
-      console.error('Error adding content:', error);
       showToast('Failed to add content', 'error');
     }
   }, [bioId, uploadExclusiveContent, showToast]);
@@ -506,7 +501,6 @@ export default function MyPage() {
         showToast('Content updated successfully', 'success');
       }
     } catch (error) {
-      console.error('Error updating content:', error);
       showToast('Failed to update content', 'error');
       // Revert state on error
       if (currentItem) {
@@ -529,7 +523,6 @@ export default function MyPage() {
       await deleteExclusiveContent(bioId, id);
       showToast('Content deleted successfully', 'success');
     } catch (error) {
-      console.error('Error deleting content:', error);
       showToast('Failed to delete content', 'error');
       // Revert state on error - restore deleted item
       if (deletedItem) {
@@ -567,7 +560,6 @@ export default function MyPage() {
         showToast('Section added successfully', 'success');
       }
     } catch (error) {
-      console.error('Error adding custom section:', error);
       showToast('Failed to add section', 'error');
     }
   }, [addCustomSection, showToast]);
@@ -603,7 +595,6 @@ export default function MyPage() {
     );
       showToast(isEmbed ? 'Embed section updated successfully' : 'Section updated successfully', 'success');
     } catch (error) {
-      console.error('Error updating custom section:', error);
       showToast(isEmbed ? 'Failed to update embed section' : 'Failed to update section', 'error');
     }
   }, [updateCustomSection, customSections, showToast]);
@@ -619,7 +610,6 @@ export default function MyPage() {
     setCustomSectionsOrder((prev) => prev.filter((sectionId) => sectionId !== id));
       showToast(isEmbedSection ? 'Embed section deleted successfully' : 'Section deleted successfully', 'success');
     } catch (error) {
-      console.error('Error deleting custom section:', error);
       showToast(isEmbedSection ? 'Failed to delete embed section' : 'Failed to delete section', 'error');
     }
   }, [removeCustomSection, customSections, showToast]);
@@ -688,7 +678,6 @@ export default function MyPage() {
       }
       showToast('Item added successfully', 'success');
     } catch (error) {
-      console.error('Error adding content to custom section:', error);
       showToast('Failed to add item', 'error');
     }
   }, [addCustomSectionLink, uploadFile, base64ToFile, showToast]);
@@ -746,7 +735,6 @@ export default function MyPage() {
     );
       showToast('Item updated successfully', 'success');
     } catch (error) {
-      console.error('Error updating content in custom section:', error);
       showToast('Failed to update item', 'error');
     }
   }, [updateCustomSectionLink, uploadFile, base64ToFile, showToast]);
@@ -768,7 +756,6 @@ export default function MyPage() {
     );
       showToast('Item deleted successfully', 'success');
     } catch (error) {
-      console.error('Error deleting content from custom section:', error);
       showToast('Failed to delete item', 'error');
     }
   }, [removeCustomSectionLink, showToast]);
@@ -846,7 +833,6 @@ export default function MyPage() {
         showToast('Text section added successfully', 'success');
       }
     } catch (error) {
-      console.error('Error adding text section:', error);
       showToast('Failed to add text section', 'error');
     }
   }, [addCustomSection, showToast]);
@@ -880,7 +866,6 @@ export default function MyPage() {
         showToast('Email section added successfully', 'success');
       }
     } catch (error) {
-      console.error('Error adding email section:', error);
       showToast('Failed to add email section', 'error');
     }
   }, [addCustomSection, showToast]);
@@ -905,7 +890,6 @@ export default function MyPage() {
     );
       showToast('Email section updated successfully', 'success');
     } catch (error) {
-      console.error('Error updating email section:', error);
       showToast('Failed to update email section', 'error');
     }
   }, [updateCustomSection, showToast]);
@@ -916,7 +900,6 @@ export default function MyPage() {
     setTextSections((prev) => prev.filter((section) => section.id !== id));
       showToast('Email section deleted successfully', 'success');
     } catch (error) {
-      console.error('Error deleting email section:', error);
       showToast('Failed to delete email section', 'error');
     }
   }, [removeCustomSection, showToast]);
@@ -941,7 +924,6 @@ export default function MyPage() {
     );
       showToast('Text section updated successfully', 'success');
     } catch (error) {
-      console.error('Error updating text section:', error);
       showToast('Failed to update text section', 'error');
     }
   }, [updateCustomSection, showToast]);
@@ -952,7 +934,6 @@ export default function MyPage() {
     setTextSections((prev) => prev.filter((section) => section.id !== id));
       showToast('Text section deleted successfully', 'success');
     } catch (error) {
-      console.error('Error deleting text section:', error);
       showToast('Failed to delete text section', 'error');
     }
   }, [removeCustomSection, showToast]);
@@ -1021,7 +1002,6 @@ export default function MyPage() {
       
       // Create brand kit using Brand Kit API
       const response = await createBrandKit({
-        customSectionId: brandKitSectionId,
         bannerImageURL,
         description,
       });
@@ -1040,7 +1020,6 @@ export default function MyPage() {
         showToast('Brand kit added successfully', 'success');
       }
     } catch (error) {
-      console.error('Error adding brand kit:', error);
       showToast('Failed to add brand kit', 'error');
     }
   }, [uploadFile, createBrandKit, addCustomSection, currentUser, showToast]);
@@ -1077,7 +1056,6 @@ export default function MyPage() {
         showToast('Brand kit updated successfully', 'success');
       }
     } catch (error) {
-      console.error('Error updating brand kit:', error);
       showToast('Failed to update brand kit', 'error');
     }
   }, [uploadFile, updateBrandKit, showToast]);
@@ -1094,7 +1072,6 @@ export default function MyPage() {
       setPricing([]);
       showToast('Brand kit deleted successfully', 'success');
     } catch (error) {
-      console.error('Error deleting brand kit:', error);
       showToast('Failed to delete brand kit', 'error');
     }
   }, [deleteBrandKit, showToast]);
@@ -1138,7 +1115,6 @@ export default function MyPage() {
         showToast('Engagement added successfully', 'success');
       }
     } catch (error) {
-      console.error('Error adding engagement:', error);
       showToast('Failed to add engagement', 'error');
     }
   }, [brandKitId, createEngagement, showToast]);
@@ -1155,7 +1131,6 @@ export default function MyPage() {
       prev.map((item) => (item.id === id ? { ...item, ...data } : item))
     );
     } catch (error) {
-      console.error('Error updating engagement:', error);
     }
   }, [updateEngagement]);
 
@@ -1166,7 +1141,6 @@ export default function MyPage() {
     setEngagements((prev) => prev.filter((item) => item.id !== id));
       showToast('Engagement deleted successfully', 'success');
     } catch (error) {
-      console.error('Error deleting engagement:', error);
       showToast('Failed to delete engagement', 'error');
     }
   }, [deleteEngagement, showToast]);
@@ -1210,7 +1184,6 @@ export default function MyPage() {
         showToast('Pricing package added successfully', 'success');
       }
     } catch (error) {
-      console.error('Error adding pricing:', error);
       showToast('Failed to add pricing package', 'error');
     }
   }, [brandKitId, createBrandKitItem, showToast]);
@@ -1227,7 +1200,6 @@ export default function MyPage() {
     );
       showToast('Pricing package updated successfully', 'success');
     } catch (error) {
-      console.error('Error updating pricing:', error);
       showToast('Failed to update pricing package', 'error');
     }
   }, [updateBrandKitItem, showToast]);
@@ -1238,7 +1210,6 @@ export default function MyPage() {
     setPricing((prev) => prev.filter((item) => item.id !== id));
       showToast('Pricing package deleted successfully', 'success');
     } catch (error) {
-      console.error('Error deleting pricing:', error);
       showToast('Failed to delete pricing package', 'error');
     }
   }, [deleteBrandKitItem, showToast]);
@@ -1283,7 +1254,6 @@ export default function MyPage() {
         showToast('Custom button added successfully', 'success');
       }
     } catch (error) {
-      console.error('Error adding custom button:', error);
       showToast('Failed to add custom button', 'error');
     }
   }, [addCustomButton, showToast]);
@@ -1300,7 +1270,6 @@ export default function MyPage() {
     );
       showToast('Button favorite status updated', 'success');
     } catch (error) {
-      console.error('Error toggling custom button favorite:', error);
       showToast('Failed to update button favorite status', 'error');
     }
   }, [updateFavoriteCustomButton, showToast]);
@@ -1322,7 +1291,6 @@ export default function MyPage() {
     );
       showToast('Custom button updated successfully', 'success');
     } catch (error) {
-      console.error('Error updating custom button:', error);
       showToast('Failed to update custom button', 'error');
     }
   }, [updateCustomButton, showToast]);
@@ -1335,7 +1303,6 @@ export default function MyPage() {
     setCustomButtons((prev) => prev.filter((button) => button.id !== id));
       showToast('Custom button deleted successfully', 'success');
     } catch (error) {
-      console.error('Error deleting custom button:', error);
       // Revert state on error - reload from API
       try {
         const currentUser = await getCurrentUser();
@@ -1349,9 +1316,7 @@ export default function MyPage() {
           }));
           setCustomButtons(transformedButtons);
         }
-      } catch (e) {
-        console.error('Error reverting custom buttons:', e);
-      }
+      } catch {}
       showToast('Failed to delete custom button', 'error');
     }
   }, [removeCustomButton, getCurrentUser, showToast]);
@@ -1424,7 +1389,6 @@ export default function MyPage() {
         showToast('Social link added successfully', 'success');
       }
     } catch (error) {
-      console.error('Error adding social link:', error);
       showToast('Failed to add social link', 'error');
     }
   }, [addSocialLink, showToast]);
@@ -1454,7 +1418,6 @@ export default function MyPage() {
         showToast('Social link updated successfully', 'success');
       }
     } catch (error) {
-      console.error('Error updating social link:', error);
       showToast('Failed to update social link', 'error');
     }
   }, [updateSocialLink, showToast]);
@@ -1466,7 +1429,6 @@ export default function MyPage() {
       setSocialLinks((prevLinks) => prevLinks.filter((link) => link.id !== id));
       showToast('Social link removed successfully', 'success');
     } catch (error) {
-      console.error('Error removing social link:', error);
       showToast('Failed to remove social link', 'error');
     }
   }, [removeSocialLink, showToast]);
@@ -1481,9 +1443,7 @@ export default function MyPage() {
       
       // If individual updates are needed, we can update each link
       // But typically the backend handles order automatically
-    } catch (error) {
-      console.error('Error reordering social links:', error);
-    }
+    } catch {}
   }, []);
 
   // Track last saved page name to compare with current input
@@ -1513,7 +1473,6 @@ export default function MyPage() {
           setLastSavedPageName(name);
           showToast('Page name updated successfully', 'success');
         } catch (error) {
-          console.error('Error updating page name:', error);
           showToast('Failed to update page name', 'error');
           // Revert state on error - reload from API
           try {
@@ -1525,9 +1484,7 @@ export default function MyPage() {
               setPageName(currentUser.name);
               setLastSavedPageName(currentUser.name);
             }
-          } catch (e) {
-            console.error('Error reverting page name:', e);
-          }
+          } catch {}
         }
       }
       debounceTimerRef.current = null;
@@ -1569,7 +1526,6 @@ export default function MyPage() {
           setLastSavedPageUrl(url);
           showToast('Page URL updated successfully', 'success');
         } catch (error) {
-          console.error('Error updating page URL:', error);
           showToast('Failed to update page URL', 'error');
           // Revert state on error - reload from API
           try {
@@ -1578,9 +1534,7 @@ export default function MyPage() {
               setPageUrl(currentUser.bio.username);
               setLastSavedPageUrl(currentUser.bio.username);
             }
-          } catch (e) {
-            console.error('Error reverting page URL:', e);
-          }
+          } catch {}
         }
       }
       debouncePageUrlTimerRef.current = null;
@@ -1638,7 +1592,6 @@ export default function MyPage() {
           setLastSavedIntroMessage(message);
           showToast('Intro message updated successfully', 'success');
         } catch (error) {
-          console.error('Error updating intro message:', error);
           showToast('Failed to update intro message', 'error');
           // Revert state on error - reload from API
           try {
@@ -1647,9 +1600,7 @@ export default function MyPage() {
               setIntroMessage(currentUser.bio.introMessage);
               setLastSavedIntroMessage(currentUser.bio.introMessage);
             }
-          } catch (e) {
-            console.error('Error reverting intro message:', e);
-          }
+          } catch {}
         }
       }
       debounceIntroMessageTimerRef.current = null;
@@ -1685,16 +1636,13 @@ export default function MyPage() {
         showToast('Cover image removed successfully', 'success');
       }
     } catch (error) {
-      console.error('Error updating cover image:', error);
       showToast('Failed to update cover image', 'error');
       // Revert state on error - reload from API
       if (bioId) {
         try {
           const currentUser = await getCurrentUser();
           if (currentUser?.bio?.bannerImageURL) setCoverImage(currentUser.bio.bannerImageURL);
-        } catch (e) {
-          console.error('Error reverting cover image:', e);
-        }
+        } catch {}
       }
     }
   }, [bioId, updateBio, uploadFile, getCurrentUser, showToast]);
@@ -1728,16 +1676,13 @@ export default function MyPage() {
         showToast('Profile image removed successfully', 'success');
       }
     } catch (error) {
-      console.error('Error updating profile image:', error);
       showToast('Failed to update profile image', 'error');
       // Revert state on error - reload from API
       if (bioId) {
         try {
           const currentUser = await getCurrentUser();
           if (currentUser?.bio?.imageURL) setProfileImage(currentUser.bio.imageURL);
-        } catch (e) {
-          console.error('Error reverting profile image:', e);
-        }
+        } catch {}
       }
     }
   }, [bioId, updateBio, uploadFile, getCurrentUser, showToast]);
@@ -1748,7 +1693,6 @@ export default function MyPage() {
       try {
         await updateBio(bioId, { pageFont: font });
       } catch (error) {
-        console.error('Error updating font:', error);
       }
     }
   }, [bioId, updateBio]);
@@ -1760,7 +1704,6 @@ export default function MyPage() {
         await updateBio(bioId, { textColor: color });
         showToast('Text color updated successfully', 'success');
       } catch (error) {
-        console.error('Error updating text color:', error);
         showToast('Failed to update text color', 'error');
       }
     }
@@ -1775,7 +1718,6 @@ export default function MyPage() {
         await updateBio(bioId, { layoutForAvatarAndBio: apiLayout });
         showToast('Layout updated successfully', 'success');
       } catch (error) {
-        console.error('Error updating layout:', error);
         showToast('Failed to update layout', 'error');
       }
     }
@@ -1788,7 +1730,6 @@ export default function MyPage() {
         await updateBio(bioId, { backgroundColor: color });
         showToast('Background color updated successfully', 'success');
       } catch (error) {
-        console.error('Error updating background color:', error);
         showToast('Failed to update background color', 'error');
       }
     }
@@ -1823,16 +1764,13 @@ export default function MyPage() {
         showToast('Background image removed successfully', 'success');
       }
     } catch (error) {
-      console.error('Error updating background image:', error);
       showToast('Failed to update background image', 'error');
       // Revert state on error - reload from API
       if (bioId) {
         try {
           const currentUser = await getCurrentUser();
           if (currentUser?.bio?.backgroundImageURL) setBackgroundImage(currentUser.bio.backgroundImageURL);
-        } catch (e) {
-          console.error('Error reverting background image:', e);
-        }
+        } catch {}
       }
     }
   }, [bioId, updateBio, uploadFile, getCurrentUser, showToast]);
@@ -1843,15 +1781,10 @@ export default function MyPage() {
     icon: link.icon || getSocialIcon(link.platform, 16, '#FFFFFF'),
   }));
 
-  // Show loading state while data is being fetched
-  if (isLoadingData || loadingUser) {
-    return (
-      <PageContainer>
-        <ContentContainer>
-          <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>
-        </ContentContainer>
-      </PageContainer>
-    );
+  // Show full-screen loader ONLY on initial page load.
+  // Do not block UI for background refetches (e.g., after updates) because that causes loader flashes.
+  if (isLoadingData) {
+    return <Loader fullScreen={true} />;
   }
 
   return (

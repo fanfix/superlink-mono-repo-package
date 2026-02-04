@@ -65,7 +65,6 @@ export default function LandingNavbar({ onAvatarClick }: LandingNavbarProps) {
       try {
         await connectStripeFn();
       } catch (error) {
-        console.error('Failed to connect Stripe:', error);
       }
     }
   };
@@ -510,7 +509,7 @@ export default function LandingNavbar({ onAvatarClick }: LandingNavbarProps) {
                 style={{
                   color: 'var(--color-gray-500)',
                   textDecoration: 'none',
-                  fontSize: { xs: 'var(--font-size-sm)', sm: 'var(--font-size-md-1)' },
+                  fontSize: 'var(--font-size-md-1)',
                   fontWeight: 'var(--font-weight-normal)',
                   fontFamily: 'inherit',
                   cursor: 'pointer',

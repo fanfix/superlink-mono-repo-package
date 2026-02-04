@@ -7,8 +7,8 @@ import axios from 'axios';
 import { getAuthToken, clearAuth } from '../../lib/auth';
 import { createApiError } from '../types';
 
-// const REST_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.superlink.io';
-const REST_BASE_URL = 'https://develop-service-v2.superlink.io';
+const REST_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'https://develop-service-v2.superlink.io';
 /**
  * Create REST client instance
  */
@@ -30,17 +30,6 @@ restClient.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    // Log request for debugging (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('REST API Request:', {
-        url: config.url,
-        method: config.method,
-        hasToken: !!token,
-        baseURL: config.baseURL,
-      });
-    }
-    
     return config;
   },
   (error: any) => {
@@ -53,34 +42,9 @@ restClient.interceptors.request.use(
  */
 restClient.interceptors.response.use(
   (response: any) => {
-    // Log successful response for debugging (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('REST API Response:', {
-        url: response.config?.url,
-        status: response.status,
-        data: response.data,
-        headers: response.headers,
-      });
-    }
     return response;
   },
   (error: any) => {
-    // Log error for debugging (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      if (error.response) {
-        console.error('REST API Error (Response):', {
-          url: error.config?.url || 'N/A',
-          status: error.response.status || 'N/A',
-          data: error.response.data || 'N/A',
-        });
-      } else if (error.request) {
-        console.error('REST API Error (Network):', {
-          url: error.config?.url || 'N/A',
-          code: error.code || 'N/A',
-        });
-      }
-    }
-    
     // Handle 401 Unauthorized - clear auth and redirect to login
     if (error.response?.status === 401) {
       clearAuth();

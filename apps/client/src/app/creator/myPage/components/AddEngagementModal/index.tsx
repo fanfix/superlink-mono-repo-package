@@ -37,7 +37,7 @@ export default function AddEngagementModal({ open, onClose, onAdd, onUpdate, onD
     const trimmedTitle = title.trim();
     const trimmedCount = count.trim();
 
-    if (trimmedTitle && trimmedCount) {
+    if (trimmedTitle && trimmedCount && onAdd) {
       onAdd({
         title: trimmedTitle,
         count: trimmedCount,

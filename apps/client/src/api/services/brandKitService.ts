@@ -4,6 +4,7 @@
  */
 
 import { executeGraphQL } from '../config/graphqlClient';
+import { uploadFileApi } from './uploadService';
 import {
   CreateBrandKitDto,
   UpdateBrandKitDto,
@@ -208,12 +209,80 @@ export const deleteBrandKitItemApi = async (
   }
 };
 
+/**
+ * Upload Brand Kit Banner and Create Brand Kit
+ * Flow: Upload file -> Get URL -> Create Brand Kit with URL
+ */
+export const uploadAndCreateBrandKitApi = async (
+  file: File,
+  description?: string
+): Promise<CreateBrandKitResponse> => {
+  try {
+    // Step 1: Upload file and get URL
+    const uploadResponse = await uploadFileApi(file);
+    const bannerImageURL = uploadResponse.imageURL;
+
+    // Step 2: Create Brand Kit with the uploaded URL
+    const createBrandKitDto: CreateBrandKitDto = {
+      bannerImageURL,
+      description,
+    };
+
+    const response = await executeGraphQL<{ createBrandKit: CreateBrandKitResponse }>({
+      operationName: 'CreateBrandKit',
+      query: CREATE_BRAND_KIT_MUTATION,
+      variables: { createBrandKitDto },
+    });
+
+    return response.data.createBrandKit;
+  } catch (error: any) {
+    throw createApiError(error);
+  }
+};
+
+/**
+ * Upload Brand Kit Banner and Update Brand Kit
+ * Flow: Upload file -> Get URL -> Update Brand Kit with URL
+ */
+export const uploadAndUpdateBrandKitApi = async (
+  brandKitId: string,
+  file: File,
+  description?: string
+): Promise<UpdateBrandKitResponse> => {
+  try {
+    // Step 1: Upload file and get URL
+    const uploadResponse = await uploadFileApi(file);
+    const bannerImageURL = uploadResponse.imageURL;
+
+    // Step 2: Update Brand Kit with the uploaded URL
+    const updateBrandKitDto: UpdateBrandKitDto = {
+      bannerImageURL,
+      description,
+    };
+
+    const response = await executeGraphQL<{ updateBrandKit: UpdateBrandKitResponse }>({
+      operationName: 'UpdateBrandKit',
+      query: UPDATE_BRAND_KIT_MUTATION,
+      variables: { brandKitId, updateBrandKitDto },
+    });
+
+    return response.data.updateBrandKit;
+  } catch (error: any) {
+    throw createApiError(error);
+  }
+};
+
 export default {
+  createBrandKitApi,
+  updateBrandKitApi,
+  deleteBrandKitApi,
   createEngagementApi,
   updateEngagementApi,
   deleteEngagementApi,
   createBrandKitItemApi,
   updateBrandKitItemApi,
   deleteBrandKitItemApi,
+  uploadAndCreateBrandKitApi,
+  uploadAndUpdateBrandKitApi,
 };
 

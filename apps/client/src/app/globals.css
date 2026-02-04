@@ -35,3 +35,9 @@ body {
   width: 0 !important;
   height: 0 !important;
 }
+
+/* Hide flags in react-phone-input-2 (we only show dial code like design) */
+.react-tel-input .flag,
+.react-tel-input .selected-flag .flag {
+  display: none !important;
+}

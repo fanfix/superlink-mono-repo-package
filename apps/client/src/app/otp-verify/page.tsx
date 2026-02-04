@@ -9,6 +9,8 @@ import { useOTPLogin, useSendOTP } from '../../hooks/useAuthApi';
 import { executeRecaptcha, getRecaptchaTokenForSendOTP } from '../../utils/recaptcha';
 import { setAuthToken, getAuthToken } from '../../lib/auth';
 import { redirectIfAuthenticated } from '../../lib/authGuard';
+import { getAuthStateApi } from '../../api/services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 import Loader from '../../components/Loader';
 
 function OTPVerifyContent() {
@@ -19,6 +21,7 @@ function OTPVerifyContent() {
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const { execute: otpLogin, loading: otpLoginLoading } = useOTPLogin();
   const { execute: sendOTP, loading: sendOTPLoading } = useSendOTP();
+  const { refreshAuth } = useAuth();
   
   // Get phone number from URL params or sessionStorage
   const phoneFromUrl = searchParams?.get('phone') || '';
@@ -51,6 +54,41 @@ function OTPVerifyContent() {
   useEffect(() => {
     inputRefs.current[0]?.focus();
   }, []);
+
+  // Auto-send OTP when user arrives from login/signup (keeps navigation fast)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!phoneNumber) return;
+
+    const shouldAutoSend = sessionStorage.getItem('otp-auto-send') === 'true';
+    if (!shouldAutoSend) return;
+
+    // Remove flag immediately to prevent double send on rerender/refresh
+    sessionStorage.removeItem('otp-auto-send');
+
+    (async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const captchaToken = await getRecaptchaTokenForSendOTP();
+        await sendOTP({ phoneNumber, captchaToken });
+      } catch (err: any) {
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          'Failed to send OTP. Please use "Resend Code".';
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [phoneNumber, sendOTP]);
+
+  // Prefetch likely next routes to reduce redirect time
+  useEffect(() => {
+    router.prefetch('/onboarding');
+    router.prefetch('/creator/myPage');
+  }, [router]);
 
   // useLayoutEffect runs synchronously before paint - prevents flash
   useLayoutEffect(() => {
@@ -165,13 +203,24 @@ function OTPVerifyContent() {
           sessionStorage.removeItem('auth-flow');
         }
         
-        // Step 4: Redirect to my page
-        router.push('/creator/myPage');
+        // Step 4: Decide route based on state/currentUser (bio/creator existence)
+        const stateData = await getAuthStateApi(response.accessToken);
+        const hasBio = !!(stateData?.bio?.id || stateData?.bioId);
+        if (hasBio) {
+          router.replace('/creator/myPage');
+        } else {
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('onboarding-in-progress', 'true');
+          }
+          router.replace('/onboarding');
+        }
+
+        // Refresh AuthContext in background (token change also triggers this via event)
+        refreshAuth(true);
       } else {
         throw new Error('No access token received');
       }
     } catch (err: any) {
-      console.error('OTP verification error:', err);
       const errorMessage = err?.response?.data?.message || err?.message || 'Verification failed. Please try again.';
       setError(errorMessage);
       setLoading(false);
@@ -205,7 +254,6 @@ function OTPVerifyContent() {
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } catch (err: any) {
-      console.error('Resend OTP error:', err);
       const errorMessage = err?.response?.data?.message || err?.message || 'Failed to resend OTP. Please try again.';
       setError(errorMessage);
     } finally {

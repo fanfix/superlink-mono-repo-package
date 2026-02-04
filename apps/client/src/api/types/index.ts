@@ -40,6 +40,43 @@ export interface OTPLoginResponse {
   accessToken: string;
 }
 
+// ==================== Onboarding Types ====================
+export interface CheckIfPhoneAndEmailExistsResult {
+  message: string;
+  __typename?: string;
+}
+
+export interface CheckIfPhoneAndEmailExistsResponse {
+  checkIfPhoneAndEmailExists: CheckIfPhoneAndEmailExistsResult;
+}
+
+export interface OnboardSocialLinkInput {
+  name: string;
+  link: string;
+}
+
+export interface OnboardUserInput {
+  name: string;
+  pageName: string; // chosen username / page name
+  email: string;
+  isFan: boolean;
+  introMessage?: string;
+  socialLinks: OnboardSocialLinkInput[];
+}
+
+export interface OnboardUserResult {
+  id: string;
+  __typename?: string;
+}
+
+export interface OnboardUserResponse {
+  onboardUser: OnboardUserResult;
+}
+
+export interface UsernameAvailabilityResponse {
+  available: boolean;
+}
+
 export interface SignupRequest {
   name: string;
   email: string;
@@ -331,6 +368,9 @@ export interface UpdateBioInput {
   backgroundImageBlur?: number;
   pageFont?: string;
   perMessageCost?: number;
+  allowMessaging?: boolean;
+  allowTipping?: boolean;
+  allowSMS?: boolean;
   allowAgencyBranding?: boolean;
   bannerImageURL?: string;
   imageURL?: string;
@@ -525,14 +565,17 @@ export interface ChannelEarnings {
   timeRemaining?: number;
 }
 
-export interface ChannelsResponse {
-  [channelUrl: string]: ChannelEarnings;
-  total?: {
-    succeeded: number;
-    pending: number;
-    missed: number;
-  };
+export interface ChannelTotals {
+  succeeded: number;
+  pending: number;
+  missed: number;
 }
+
+// Backend returns a dynamic object keyed by channelUrl, plus an optional `total` key.
+// So index signature must allow both shapes.
+export type ChannelsResponse = Record<string, ChannelEarnings | ChannelTotals> & {
+  total?: ChannelTotals;
+};
 
 // ==================== Manage Access Types ====================
 export interface ManageAccessSearchResponse {
@@ -553,6 +596,15 @@ export interface AgencyStatus {
   email?: string;
   imageURL?: string;
   accepted: boolean;
+}
+
+export interface InviteAgencyInput {
+  email?: string;
+  agencyId?: string;
+}
+
+export interface RevokeAgencyAccessInput {
+  agencyId: string;
 }
 
 // ==================== Tipping History Types ====================
@@ -1121,7 +1173,6 @@ export interface DeleteBrandKitItemResponse {
 
 // ==================== Brand Kit DTOs and Responses ====================
 export interface CreateBrandKitDto {
-  customSectionId: string;
   bannerImageURL?: string;
   description?: string;
 }

@@ -119,7 +119,7 @@ export default function AddCustomButtonModal({ open, onClose, onAdd, onUpdate, o
               Update
             </Button>
             <Button
-              variant="outline"
+              variant="outlined"
               onClick={handleDelete}
               sx={sharedModalStyles.deleteButtonOutline}
               fullWidth

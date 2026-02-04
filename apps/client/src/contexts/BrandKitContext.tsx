@@ -18,7 +18,10 @@ import {
   createBrandKitItemApi,
   updateBrandKitItemApi,
   deleteBrandKitItemApi,
+  uploadAndCreateBrandKitApi,
+  uploadAndUpdateBrandKitApi,
 } from '../api/services/brandKitService';
+import { uploadFileApi } from '../api/services/uploadService';
 import type {
   CreateBrandKitDto,
   UpdateBrandKitDto,
@@ -41,7 +44,7 @@ import type {
 interface BrandKitContextValue {
   // Data - Brand Kit is stored in user.bio.customSections[].brandKit
   // We derive it from user context to avoid duplicate state
-  
+
   // Loading states
   creating: boolean;
   updating: boolean;
@@ -52,25 +55,30 @@ interface BrandKitContextValue {
   creatingItem: boolean;
   updatingItem: boolean;
   deletingItem: boolean;
-  
+  uploading: boolean;
+
   // Error states
   error: Error | null;
-  
+
   // Actions - Brand Kit CRUD
   createBrandKit: (dto: CreateBrandKitDto) => Promise<CreateBrandKitResponse>;
   updateBrandKit: (brandKitId: string, dto: UpdateBrandKitDto) => Promise<UpdateBrandKitResponse>;
   deleteBrandKit: (brandKitId: string) => Promise<DeleteBrandKitResponse>;
-  
+
   // Actions - Engagement CRUD
   createEngagement: (brandKitId: string, dto: CreateEngagementDto) => Promise<CreateEngagementResponse>;
   updateEngagement: (engagementId: string, dto: UpdateEngagementDto) => Promise<UpdateEngagementResponse>;
   deleteEngagement: (engagementId: string) => Promise<DeleteEngagementResponse>;
-  
+
   // Actions - Brand Kit Item CRUD
   createBrandKitItem: (brandKitId: string, dto: CreateKitItemsDto) => Promise<CreateBrandKitItemResponse>;
   updateBrandKitItem: (brandKitItemId: string, dto: UpdateKitItemsDto) => Promise<UpdateBrandKitItemResponse>;
   deleteBrandKitItem: (brandKitItemId: string) => Promise<DeleteBrandKitItemResponse>;
-  
+
+  // Actions - Upload + Create/Update Brand Kit (Sequential)
+  uploadAndCreateBrandKit: (file: File, description?: string) => Promise<CreateBrandKitResponse>;
+  uploadAndUpdateBrandKit: (brandKitId: string, file: File, description?: string) => Promise<UpdateBrandKitResponse>;
+
   // Utility
   clearError: () => void;
   getBrandKitBySectionId: (sectionId: string) => BrandKit | null;
@@ -100,6 +108,7 @@ export function BrandKitProvider({ children }: BrandKitProviderProps) {
   const [creatingItem, setCreatingItem] = useState(false);
   const [updatingItem, setUpdatingItem] = useState(false);
   const [deletingItem, setDeletingItem] = useState(false);
+  const [uploading, setUploading] = useState(false);
   
   // Error state
   const [error, setError] = useState<Error | null>(null);
@@ -126,7 +135,6 @@ export function BrandKitProvider({ children }: BrandKitProviderProps) {
       await refreshUser();
       return response;
     } catch (err: any) {
-      console.error('Failed to create brand kit:', err);
       setError(err);
       throw err;
     } finally {
@@ -149,7 +157,6 @@ export function BrandKitProvider({ children }: BrandKitProviderProps) {
       await refreshUser();
       return response;
     } catch (err: any) {
-      console.error('Failed to update brand kit:', err);
       setError(err);
       throw err;
     } finally {
@@ -169,7 +176,6 @@ export function BrandKitProvider({ children }: BrandKitProviderProps) {
       await refreshUser();
       return response;
     } catch (err: any) {
-      console.error('Failed to delete brand kit:', err);
       setError(err);
       throw err;
     } finally {
@@ -192,7 +198,6 @@ export function BrandKitProvider({ children }: BrandKitProviderProps) {
       await refreshUser();
       return response;
     } catch (err: any) {
-      console.error('Failed to create engagement:', err);
       setError(err);
       throw err;
     } finally {
@@ -215,7 +220,6 @@ export function BrandKitProvider({ children }: BrandKitProviderProps) {
       await refreshUser();
       return response;
     } catch (err: any) {
-      console.error('Failed to update engagement:', err);
       setError(err);
       throw err;
     } finally {
@@ -235,7 +239,6 @@ export function BrandKitProvider({ children }: BrandKitProviderProps) {
       await refreshUser();
       return response;
     } catch (err: any) {
-      console.error('Failed to delete engagement:', err);
       setError(err);
       throw err;
     } finally {
@@ -258,7 +261,6 @@ export function BrandKitProvider({ children }: BrandKitProviderProps) {
       await refreshUser();
       return response;
     } catch (err: any) {
-      console.error('Failed to create brand kit item:', err);
       setError(err);
       throw err;
     } finally {
@@ -281,7 +283,6 @@ export function BrandKitProvider({ children }: BrandKitProviderProps) {
       await refreshUser();
       return response;
     } catch (err: any) {
-      console.error('Failed to update brand kit item:', err);
       setError(err);
       throw err;
     } finally {
@@ -303,11 +304,81 @@ export function BrandKitProvider({ children }: BrandKitProviderProps) {
       await refreshUser();
       return response;
     } catch (err: any) {
-      console.error('Failed to delete brand kit item:', err);
       setError(err);
       throw err;
     } finally {
       setDeletingItem(false);
+    }
+  }, [refreshUser]);
+
+  /**
+   * Upload and Create Brand Kit (Sequential: Upload -> Get URL -> Create)
+   */
+  const uploadAndCreateBrandKit = useCallback(async (
+    file: File,
+    description?: string
+  ): Promise<CreateBrandKitResponse> => {
+    try {
+      setUploading(true);
+      setCreating(true);
+      setError(null);
+
+      // Step 1: Upload file and get URL
+      const uploadResponse = await uploadFileApi(file);
+      const bannerImageURL = uploadResponse.imageURL;
+
+      // Step 2: Create Brand Kit with the uploaded URL
+      const createBrandKitDto: CreateBrandKitDto = {
+        bannerImageURL,
+        description,
+      };
+
+      const response = await createBrandKitApi(createBrandKitDto);
+      // Refresh user data to get updated brand kit
+      await refreshUser();
+      return response;
+    } catch (err: any) {
+      setError(err);
+      throw err;
+    } finally {
+      setUploading(false);
+      setCreating(false);
+    }
+  }, [refreshUser]);
+
+  /**
+   * Upload and Update Brand Kit (Sequential: Upload -> Get URL -> Update)
+   */
+  const uploadAndUpdateBrandKit = useCallback(async (
+    brandKitId: string,
+    file: File,
+    description?: string
+  ): Promise<UpdateBrandKitResponse> => {
+    try {
+      setUploading(true);
+      setUpdating(true);
+      setError(null);
+
+      // Step 1: Upload file and get URL
+      const uploadResponse = await uploadFileApi(file);
+      const bannerImageURL = uploadResponse.imageURL;
+
+      // Step 2: Update Brand Kit with the uploaded URL
+      const updateBrandKitDto: UpdateBrandKitDto = {
+        bannerImageURL,
+        description,
+      };
+
+      const response = await updateBrandKitApi(brandKitId, updateBrandKitDto);
+      // Refresh user data to get updated brand kit
+      await refreshUser();
+      return response;
+    } catch (err: any) {
+      setError(err);
+      throw err;
+    } finally {
+      setUploading(false);
+      setUpdating(false);
     }
   }, [refreshUser]);
 
@@ -328,6 +399,7 @@ export function BrandKitProvider({ children }: BrandKitProviderProps) {
     creatingItem,
     updatingItem,
     deletingItem,
+    uploading,
     error,
     createBrandKit,
     updateBrandKit,
@@ -338,6 +410,8 @@ export function BrandKitProvider({ children }: BrandKitProviderProps) {
     createBrandKitItem,
     updateBrandKitItem,
     deleteBrandKitItem,
+    uploadAndCreateBrandKit,
+    uploadAndUpdateBrandKit,
     clearError,
     getBrandKitBySectionId,
   };

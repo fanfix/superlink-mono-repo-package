@@ -309,7 +309,7 @@ export default function UploadContentModal({ open, onClose, onAdd, onUpdate, onD
                 Update
               </Button>
               <Button
-                variant="outline"
+                variant="outlined"
                 onClick={handleDelete}
                 sx={deleteButtonStyles}
                 fullWidth

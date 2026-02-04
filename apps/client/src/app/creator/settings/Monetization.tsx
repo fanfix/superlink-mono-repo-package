@@ -6,6 +6,7 @@ import { Typography, Button, Toggle, TextField } from '@superline/design-system'
 import { styled } from '@mui/material/styles';
 import { CheckCircle, Edit, Settings } from '@mui/icons-material';
 import { useMonetization } from '../../../contexts/MonetizationContext';
+import Loader from '../../../components/Loader';
 
 const Container = styled(Box)({
   maxWidth: 'var(--width-settings-container)',
@@ -223,7 +224,7 @@ export default function Monetization() {
 
   const [messagePrice, setMessagePrice] = useState('');
   const [isEditingPrice, setIsEditingPrice] = useState(false);
-  const [priceError, setPriceError] = useState<string | null>(null);
+  const [priceError, setPriceError] = useState<string | undefined>(undefined);
 
   // Initialize message price from bio
   useEffect(() => {
@@ -234,12 +235,12 @@ export default function Monetization() {
 
   const handleEditPrice = () => {
     setIsEditingPrice(true);
-    setPriceError(null);
+    setPriceError(undefined);
   };
 
   const handleCancelEditPrice = () => {
     setIsEditingPrice(false);
-    setPriceError(null);
+    setPriceError(undefined);
     // Reset to original price
     if (bio?.perMessageCost) {
       setMessagePrice(String(bio.perMessageCost));
@@ -256,7 +257,7 @@ export default function Monetization() {
     }
 
     try {
-      setPriceError(null);
+      setPriceError(undefined);
       await updateMessagePrice(price);
       setIsEditingPrice(false);
     } catch (error: any) {
@@ -273,7 +274,6 @@ export default function Monetization() {
     try {
       await updateTipping(checked);
     } catch (error: any) {
-      console.error('Failed to update tipping:', error);
       // You can add toast notification here
     }
   };
@@ -287,7 +287,6 @@ export default function Monetization() {
     try {
       await updateMessaging(checked);
     } catch (error: any) {
-      console.error('Failed to update messaging:', error);
       // You can add toast notification here
     }
   };
@@ -296,7 +295,6 @@ export default function Monetization() {
     try {
       await connectStripe();
     } catch (error: any) {
-      console.error('Failed to connect Stripe:', error);
       // You can add toast notification here
     }
   };
@@ -314,7 +312,7 @@ export default function Monetization() {
     return (
       <Container>
         <Title>Monetization</Title>
-        <Typography>Loading...</Typography>
+        <Loader fullScreen={false} />
       </Container>
     );
   }
@@ -454,7 +452,7 @@ export default function Monetization() {
                 value={messagePrice}
                 onChange={(e) => {
                   setMessagePrice(e.target.value);
-                  setPriceError(null);
+                  setPriceError(undefined);
                 }}
                 sx={priceTextFieldStyles}
                 autoFocus
@@ -464,7 +462,7 @@ export default function Monetization() {
               />
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button
-                  variant="secondary"
+                  variant="primary-light"
                   onClick={handleCancelEditPrice}
                   sx={saveButtonStyles}
                   disabled={updating}

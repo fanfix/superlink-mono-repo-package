@@ -74,7 +74,6 @@ export default function CreatorMessagesPage() {
       await connectStripe();
       // Modal will close automatically after Stripe redirect
     } catch (error) {
-      console.error('Failed to connect Stripe:', error);
     }
   };
 
@@ -94,9 +93,7 @@ export default function CreatorMessagesPage() {
   useEffect(() => {
     if (user?.id) {
       // Call the API immediately when user is available
-      getChannels(user.id).catch((error) => {
-        console.error('Failed to fetch channels:', error);
-      });
+      getChannels(user.id).catch(() => undefined);
     }
   }, [user?.id, getChannels]);
 

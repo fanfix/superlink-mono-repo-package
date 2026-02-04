@@ -157,8 +157,8 @@ export const CalendarOnly: React.FC<CalendarOnlyProps> = ({
       
       const isCurrentMonth = date.getMonth() === monthIndex;
       const isToday = date.toDateString() === today.toDateString();
-      const isSelected = value && date.toDateString() === value.toDateString() && isCurrentMonth;
-      const isDisabled = (minDate && date < minDate) || (maxDate && date > maxDate);
+      const isSelected = Boolean(value && date.toDateString() === value.toDateString() && isCurrentMonth);
+      const isDisabled = Boolean((minDate && date < minDate) || (maxDate && date > maxDate));
       
       days.push({
         date,
@@ -282,8 +282,10 @@ export const CalendarOnly: React.FC<CalendarOnlyProps> = ({
         <Box sx={yearGridStyles}>
           {generateYearList().map((year) => {
             const isSelected = year === currentMonth.getFullYear();
-            const isDisabled = (minDate && year < minDate.getFullYear()) || 
-                              (maxDate && year > maxDate.getFullYear());
+            const isDisabled = Boolean(
+              (minDate && year < minDate.getFullYear()) ||
+              (maxDate && year > maxDate.getFullYear())
+            );
             
             return (
               <Box

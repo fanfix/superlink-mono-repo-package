@@ -9,7 +9,7 @@ interface TitleInputProps {
   value: string;
   color: string;
   showEmojiPicker: boolean;
-  colorPickerRef: React.RefObject<HTMLInputElement>;
+  colorPickerRef: React.RefObject<HTMLInputElement | null>;
   onChange: (value: string) => void;
   onColorChange: (color: string) => void;
   onEmojiClick: (emoji: EmojiClickData) => void;

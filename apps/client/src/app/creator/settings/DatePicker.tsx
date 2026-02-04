@@ -201,8 +201,8 @@ export const DatePicker: FC<DatePickerProps> = ({
       
       const isCurrentMonth = date.getMonth() === monthIndex;
       const isToday = date.toDateString() === today.toDateString();
-      const isSelected = value && date.toDateString() === value.toDateString() && isCurrentMonth;
-      const isDisabled = (minDate && date < minDate) || (maxDate && date > maxDate);
+      const isSelected = Boolean(value && date.toDateString() === value.toDateString() && isCurrentMonth);
+      const isDisabled = Boolean((minDate && date < minDate) || (maxDate && date > maxDate));
       
       days.push({
         date,

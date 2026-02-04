@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Box, InputAdornment } from '@mui/material';
 import {
   Button,
@@ -10,9 +10,10 @@ import {
   OnlyFansLogoIcon,
 } from '@superline/design-system';
 import { getSocialIcon } from '../../creator/myPage/components/sections/SocialLinksSection/utils/getSocialIcon';
+import type { OnboardSocialLinkInput } from '../../../api/types';
 
 interface SocialLinksStepProps {
-  onContinue: () => void;
+  onContinue: (links: OnboardSocialLinkInput[]) => void | Promise<void>;
 }
 
 // Style variables
@@ -161,12 +162,36 @@ const SocialLinksStep = ({ onContinue }: SocialLinksStepProps) => {
     spotify: '',
     onlyfans: '',
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (key: SocialKey, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
   };
 
   const hasAnyValue = Object.values(values).some((v) => v.trim().length > 0);
+
+  const socialLinks = useMemo<OnboardSocialLinkInput[]>(() => {
+    const domainMap: Record<SocialKey, string> = {
+      facebook: 'facebook.com',
+      twitter: 'x.com',
+      instagram: 'instagram.com',
+      youtube: 'youtube.com',
+      tiktok: 'tiktok.com',
+      snapchat: 'snapchat.com',
+      spotify: 'open.spotify.com',
+      onlyfans: 'onlyfans.com',
+    };
+
+    return SOCIAL_FIELDS.flatMap(({ key }) => {
+      const raw = values[key]?.trim();
+      if (!raw) return [];
+      const url = raw.startsWith('http://') || raw.startsWith('https://')
+        ? raw
+        : `https://${domainMap[key]}/${raw.replace(/^@/, '')}`;
+      return [{ name: key, link: url }];
+    });
+  }, [values]);
 
   const renderLogo = (key: SocialKey, active: boolean) => {
     const color = active ? BRAND_COLORS[key] : 'var(--color-onboarding-background-gray-dark)';
@@ -230,16 +255,59 @@ const SocialLinksStep = ({ onContinue }: SocialLinksStepProps) => {
       </Box>
 
       <Box sx={buttonContainerStyles}>
-      <Button
+        {error && (
+          <Typography
+            sx={{
+              fontSize: 'var(--font-size-onboarding-sm)',
+              color: '#dc2626',
+              mb: 1.5,
+            }}
+          >
+            {error}
+          </Typography>
+        )}
+
+        <Button
           variant={hasAnyValue ? 'primary-dark' : 'primary-light'}
           fullWidth
           sx={buttonStyles}
-          onClick={onContinue}
+          loading={loading}
+          disabled={loading}
+          onClick={async () => {
+            setError('');
+            setLoading(true);
+            try {
+              await onContinue(socialLinks);
+            } catch (err: any) {
+              setError(err?.message || 'Failed to continue. Please try again.');
+            } finally {
+              setLoading(false);
+            }
+          }}
         >
           Continue
         </Button>
 
-        <Typography component="button" onClick={onContinue} sx={skipButtonStyles}>
+        <Typography
+          component="button"
+          onClick={async () => {
+            if (loading) return;
+            setError('');
+            setLoading(true);
+            try {
+              await onContinue([]);
+            } catch (err: any) {
+              setError(err?.message || 'Failed to continue. Please try again.');
+            } finally {
+              setLoading(false);
+            }
+          }}
+          sx={{
+            ...skipButtonStyles,
+            opacity: loading ? 0.5 : 1,
+            cursor: loading ? 'not-allowed' : 'pointer',
+          }}
+        >
           Skip for Now
         </Typography>
       </Box>

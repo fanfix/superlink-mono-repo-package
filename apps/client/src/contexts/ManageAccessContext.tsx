@@ -79,7 +79,6 @@ export function ManageAccessProvider({ children, autoFetch = true }: ManageAcces
       const agencyList = Array.isArray(results) ? results : (results.agencies || []);
       setAgencies(agencyList);
     } catch (err: any) {
-      console.error('Failed to search agencies:', err);
       setError(err);
       setAgencies([]);
     } finally {
@@ -101,7 +100,6 @@ export function ManageAccessProvider({ children, autoFetch = true }: ManageAcces
       const status = await getAgencyStatusApi(user.bio.id);
       setInvitedAgency(status);
     } catch (err: any) {
-      console.error('Failed to fetch agency status:', err);
       setError(err);
       setInvitedAgency(null);
     } finally {
@@ -127,7 +125,6 @@ export function ManageAccessProvider({ children, autoFetch = true }: ManageAcces
       // Refresh agency status after invite
       await refreshAgencyStatus();
     } catch (err: any) {
-      console.error('Failed to invite agency:', err);
       setError(err);
       throw err;
     } finally {
@@ -153,7 +150,6 @@ export function ManageAccessProvider({ children, autoFetch = true }: ManageAcces
       // Refresh agency status after revoke
       await refreshAgencyStatus();
     } catch (err: any) {
-      console.error('Failed to revoke agency access:', err);
       setError(err);
       throw err;
     } finally {
