@@ -791,6 +791,15 @@ export const REMOVE_CUSTOM_SECTION_MUTATION = `
   }
 `;
 
+export const REORDER_CUSTOM_SECTIONS_MUTATION = `
+  mutation ReorderCustomSections($customSectionIds: [String!]!) {
+    reorderCustomSections(customSectionIds: $customSectionIds) {
+      id
+      __typename
+    }
+  }
+`;
+
 // ==================== Custom Section Link Mutations ====================
 export const ADD_CUSTOM_SECTION_LINK_MUTATION = `
   mutation AddCustomSectionLink($customSectionId: String!, $createCustomSectionLinkInput: CreateCustomSectionLinkInput!) {

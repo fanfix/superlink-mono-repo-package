@@ -10,6 +10,8 @@ import { EmbedMaker, getEmbedPlatform } from '../../../embedPreview';
 
 interface CustomSectionRendererProps {
   section: CustomSection;
+  /** When true (e.g. public username page), use compact grid (3 cols, smaller gap/size). */
+  compactLayout?: boolean;
 }
 
 const LINK_ICON_COLOR = 'var(--color-black)';
@@ -52,7 +54,7 @@ function getNoThumbnailPlaceholder(item: { url?: string; isEmail?: boolean }, ic
 const EMBED_SLIDER_ITEM_WIDTH = 280;
 const EMBED_SLIDER_GAP = 16;
 
-export function CustomSectionRenderer({ section }: CustomSectionRendererProps) {
+export function CustomSectionRenderer({ section, compactLayout }: CustomSectionRendererProps) {
   const embedSliderRef = useRef<HTMLDivElement>(null);
 
   const handleLinkClick = (item: { url?: string; isEmail?: boolean }) => {
@@ -134,9 +136,9 @@ export function CustomSectionRenderer({ section }: CustomSectionRendererProps) {
 
       case 'row':
         return (
-          <Box sx={styles.customSectionRow}>
+          <Box sx={compactLayout ? styles.customSectionRowCompact : styles.customSectionRow}>
             {section.items.map((item) => (
-              <Box key={item.id} sx={styles.customSectionRowItem}>
+              <Box key={item.id} sx={[styles.customSectionRowItem, compactLayout && styles.customSectionRowItemCompact]}>
                 {item.imageUrl ? (
                   <Box sx={rowImageContainerStyles}>
                     <Box component="img" src={item.imageUrl} alt={item.title} sx={styles.customSectionRowImage} />
@@ -216,10 +218,10 @@ export function CustomSectionRenderer({ section }: CustomSectionRendererProps) {
     }
   };
 
-  // Embed sections: list = Spotify-style stacked; row = slider with nav buttons
+  // Embed sections: show embed items with EmbedMaker, non-embed items as link cards
   if (section.sectionType === 'embeds' && section.items.length > 0) {
     const embedItems = section.items.filter((item) => item.url && getEmbedPlatform(item.url));
-    if (embedItems.length === 0) return null;
+    const nonEmbedItems = section.items.filter((item) => !item.url || !getEmbedPlatform(item.url));
 
     if (section.layout === 'list' || section.layout === 'parallel-row') {
       return (
@@ -234,12 +236,102 @@ export function CustomSectionRenderer({ section }: CustomSectionRendererProps) {
                 </Box>
               );
             })}
+            {nonEmbedItems.length > 0 && section.layout === 'parallel-row' && (
+              <Box sx={styles.customSectionParallel}>
+                {nonEmbedItems.map((item) => (
+                  <Tooltip
+                    key={item.id}
+                    title={
+                      <Box>
+                        <Box sx={styles.tooltipTitle}>{item.title}</Box>
+                        {item.url && <Box>{item.url}</Box>}
+                        {!item.url && item.price && <Box>${item.price}</Box>}
+                      </Box>
+                    }
+                    arrow
+                    placement="top"
+                  >
+                    <Box
+                      sx={styles.customSectionParallelItem}
+                      onClick={() => item.url && handleLinkClick(item)}
+                    >
+                      <Box sx={styles.parallelImageContainer}>
+                        {item.imageUrl ? (
+                          <Box component="img" src={item.imageUrl} alt={item.title} sx={styles.customSectionParallelImage} />
+                        ) : (
+                          <Box sx={{ ...styles.customSectionParallelImagePlaceholder, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {getNoThumbnailPlaceholder(item, 28)}
+                          </Box>
+                        )}
+                        <Box sx={styles.customSectionParallelIcon}>
+                          {getLinkIcon(item, 16)}
+                        </Box>
+                      </Box>
+                      <Box sx={styles.customSectionParallelContent}>
+                        <Typography sx={styles.customSectionParallelTitle}>{item.title}</Typography>
+                        {item.content?.trim() ? (
+                          <Typography sx={{ ...styles.customSectionParallelUrl, whiteSpace: 'normal' }}>{item.content.trim()}</Typography>
+                        ) : null}
+                        {item.url ? (
+                          <Typography sx={styles.customSectionParallelUrl}>{item.url}</Typography>
+                        ) : item.price ? (
+                          <Typography sx={styles.customSectionParallelUrl}>${item.price}</Typography>
+                        ) : null}
+                      </Box>
+                    </Box>
+                  </Tooltip>
+                ))}
+              </Box>
+            )}
+            {nonEmbedItems.length > 0 && section.layout === 'list' && (
+              <Box sx={styles.customSectionList}>
+                {nonEmbedItems.map((item) => (
+                  <Box key={item.id} sx={styles.customSectionListItem} onClick={() => item.url && handleLinkClick(item)} role={item.url ? 'link' : undefined}>
+                    {item.imageUrl ? (
+                      <>
+                        <Box sx={styles.customSectionListImageWrap}>
+                          <Box sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+                            <Box component="img" src={item.imageUrl} alt={item.title} sx={styles.customSectionListImage} />
+                            {item.url && (
+                              <IconButton
+                                onClick={(e) => { e.stopPropagation(); handleLinkClick(item); }}
+                                size="small"
+                                sx={styles.customSectionListLinkIcon}
+                              >
+                                {getLinkIcon(item, 18)}
+                              </IconButton>
+                            )}
+                          </Box>
+                        </Box>
+                        <Box sx={styles.customSectionListContent}>
+                          <Typography sx={styles.customSectionItemTitle}>{item.title}</Typography>
+                        </Box>
+                      </>
+                    ) : (
+                      <Box sx={styles.customSectionListItemFallback}>
+                        <Box sx={{ ...styles.customSectionListIcon, overflow: 'hidden', borderRadius: 'var(--border-radius-md)' }}>
+                          {getNoThumbnailPlaceholder(item, 32)}
+                        </Box>
+                        <Box sx={styles.customSectionItemContent}>
+                          <Typography sx={styles.customSectionItemTitle}>{item.title}</Typography>
+                          {item.url ? (
+                            <Typography sx={styles.customSectionItemPrice}>{item.url}</Typography>
+                          ) : item.price ? (
+                            <Typography sx={styles.customSectionItemPrice}>${item.price}</Typography>
+                          ) : null}
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            )}
           </Box>
         </Box>
       );
     }
 
-    if (section.layout === 'row') {
+    if (section.layout === 'row' && embedItems.length > 0) {
       const scroll = (dir: 'left' | 'right') => {
         const el = embedSliderRef.current;
         if (!el) return;
@@ -287,6 +379,86 @@ export function CustomSectionRenderer({ section }: CustomSectionRendererProps) {
                 </Box>
               );
             })}
+          </Box>
+          {nonEmbedItems.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <Box sx={styles.customSectionParallel}>
+                {nonEmbedItems.map((item) => (
+                  <Tooltip
+                    key={item.id}
+                    title={
+                      <Box>
+                        <Box sx={styles.tooltipTitle}>{item.title}</Box>
+                        {item.url && <Box>{item.url}</Box>}
+                        {!item.url && item.price && <Box>${item.price}</Box>}
+                      </Box>
+                    }
+                    arrow
+                    placement="top"
+                  >
+                    <Box
+                      sx={styles.customSectionParallelItem}
+                      onClick={() => item.url && handleLinkClick(item)}
+                    >
+                      <Box sx={styles.parallelImageContainer}>
+                        {item.imageUrl ? (
+                          <Box component="img" src={item.imageUrl} alt={item.title} sx={styles.customSectionParallelImage} />
+                        ) : (
+                          <Box sx={{ ...styles.customSectionParallelImagePlaceholder, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {getNoThumbnailPlaceholder(item, 28)}
+                          </Box>
+                        )}
+                        <Box sx={styles.customSectionParallelIcon}>
+                          {getLinkIcon(item, 16)}
+                        </Box>
+                      </Box>
+                      <Box sx={styles.customSectionParallelContent}>
+                        <Typography sx={styles.customSectionParallelTitle}>{item.title}</Typography>
+                        {item.content?.trim() ? (
+                          <Typography sx={{ ...styles.customSectionParallelUrl, whiteSpace: 'normal' }}>{item.content.trim()}</Typography>
+                        ) : null}
+                        {item.url ? (
+                          <Typography sx={styles.customSectionParallelUrl}>{item.url}</Typography>
+                        ) : item.price ? (
+                          <Typography sx={styles.customSectionParallelUrl}>${item.price}</Typography>
+                        ) : null}
+                      </Box>
+                    </Box>
+                  </Tooltip>
+                ))}
+              </Box>
+            </Box>
+          )}
+        </Box>
+      );
+    }
+
+    if (embedItems.length === 0 && nonEmbedItems.length > 0 && section.layout === 'row') {
+      return (
+        <Box sx={styles.customSection}>
+          <Typography sx={styles.customSectionName}>{section.name}</Typography>
+          <Box sx={styles.customSectionParallel}>
+            {nonEmbedItems.map((item) => (
+              <Tooltip key={item.id} title={<Box><Box sx={styles.tooltipTitle}>{item.title}</Box>{item.url && <Box>{item.url}</Box>}</Box>} arrow placement="top">
+                <Box sx={styles.customSectionParallelItem} onClick={() => item.url && handleLinkClick(item)}>
+                  <Box sx={styles.parallelImageContainer}>
+                    {item.imageUrl ? (
+                      <Box component="img" src={item.imageUrl} alt={item.title} sx={styles.customSectionParallelImage} />
+                    ) : (
+                      <Box sx={{ ...styles.customSectionParallelImagePlaceholder, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {getNoThumbnailPlaceholder(item, 28)}
+                      </Box>
+                    )}
+                    <Box sx={styles.customSectionParallelIcon}>{getLinkIcon(item, 16)}</Box>
+                  </Box>
+                  <Box sx={styles.customSectionParallelContent}>
+                    <Typography sx={styles.customSectionParallelTitle}>{item.title}</Typography>
+                    {item.content?.trim() ? <Typography sx={{ ...styles.customSectionParallelUrl, whiteSpace: 'normal' }}>{item.content.trim()}</Typography> : null}
+                    {item.url ? <Typography sx={styles.customSectionParallelUrl}>{item.url}</Typography> : item.price ? <Typography sx={styles.customSectionParallelUrl}>${item.price}</Typography> : null}
+                  </Box>
+                </Box>
+              </Tooltip>
+            ))}
           </Box>
         </Box>
       );

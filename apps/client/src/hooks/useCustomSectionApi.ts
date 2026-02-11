@@ -27,6 +27,15 @@ export const useRemoveCustomSection = () => {
   };
 };
 
+export const useReorderCustomSections = () => {
+  const { reorderCustomSections, reordering, error } = useCustomSections();
+  return {
+    execute: reorderCustomSections,
+    loading: reordering,
+    error,
+  };
+};
+
 export const useAddCustomSectionLink = () => {
   const { addCustomSectionLink, addingLink, error } = useCustomSections();
   return {

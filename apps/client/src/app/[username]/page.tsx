@@ -141,20 +141,33 @@ function buildPreviewProps(
 const layoutStyles = {
   root: {
     minHeight: '100vh',
+    height: { xs: '100vh', md: 'auto' },
+    overflow: { xs: 'hidden', md: 'visible' },
     width: '100%',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    paddingTop: { xs: 0, md: 'var(--padding-3xl)' },
+    paddingBottom: { xs: 0, md: 'var(--padding-3xl)' },
     backgroundColor: 'var(--color-gray-100)',
   },
   previewWrapper: {
-    width: '100%',
-   
+    width: { xs: '100%', md: '50%' },
+    minWidth: { md: 320 },
+    maxWidth: { xs: 'min(100%, 420px)', md: '50vw' },
+    height: { xs: '100%', md: 'auto' },
+    overflow: { xs: 'hidden', md: 'visible' },
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     margin: '0 auto',
     flexShrink: 0,
+    '& > div': {
+      maxWidth: '100% !important',
+      width: '100%',
+      height: { xs: '100% !important', md: 'auto !important' },
+      maxHeight: { xs: '100% !important', md: 'none !important' },
+    },
   },
   centeredMessage: {
     minHeight: '100vh',
@@ -242,6 +255,7 @@ export default function PublicProfilePage() {
             onReplicateClick={handleReplicateClick}
             showCreateOwnPageLink
             onCreateOwnPageClick={() => router.push('/signup')}
+            compactSectionLayout
           />
         </Box>
       </Box>

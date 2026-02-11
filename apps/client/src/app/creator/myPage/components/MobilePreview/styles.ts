@@ -7,7 +7,7 @@ export const styles = {
     width: '100%',
     maxWidth: { xs: '100%', md: 'var(--width-mypage-preview-max)' },
     height: { xs: '100%', md: 'calc(100vh - var(--height-mypage-viewport-offset))' },
-    maxHeight: { xs: 'none', md: 'calc(100vh - var(--height-mypage-viewport-offset))' },
+    maxHeight: { xs: '100%', md: 'calc(100vh - var(--height-mypage-viewport-offset))' },
     marginTop: { xs: 0, md: 'var(--padding-3xl)' },
     marginBottom: { xs: 0, md: 'var(--padding-3xl)' },
     marginLeft: { xs: 0, md: 0 },
@@ -26,8 +26,9 @@ export const styles = {
     borderRadius: { xs: 0, md: 'var(--border-radius-2xl)' },
     overflow: 'hidden' as const,
     boxShadow: 'none',
-    height: { xs: 'auto', md: '100%' },
-    minHeight: { xs: 'auto', md: 'auto' },
+    height: { xs: '100%', md: '100%' },
+    minHeight: { xs: 0, md: 'auto' },
+    flex: { xs: 1, md: 'none' },
     display: 'flex',
     flexDirection: 'column' as const,
     overflowY: 'auto' as const,
@@ -142,7 +143,7 @@ export const styles = {
     top: 'calc(50% + 50px)',
     left: '50%',
     transform: 'translateX(-50%)',
-    fontSize: 'var(--font-size-mypage-xl)',
+    fontSize: { xs: 'var(--font-size-mypage-2xl)', md: 'var(--font-size-mypage-xl)' },
     fontWeight: 'var(--font-weight-bold)',
     color: selectedTextColor,
     marginBottom: 0,
@@ -209,7 +210,7 @@ export const styles = {
 
   // Layout 2: Name on right side
   pageNameLayout2: (selectedTextColor: string, fontFamily: string) => ({
-    fontSize: 'var(--font-size-mypage-lg)',
+    fontSize: { xs: 'var(--font-size-mypage-xl)', md: 'var(--font-size-mypage-lg)' },
     fontWeight: 'var(--font-weight-bold)',
     color: selectedTextColor,
     fontFamily: fontFamily,
@@ -329,78 +330,89 @@ export const styles = {
   } as SxProps<Theme>,
 
   // Replicate profile CTA bar (light gray bar, left text, right button)
-  replicateCtaContainer: {
+  replicateCtaContainer: (isDarkBg: boolean) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 'var(--padding-md)',
     padding: 'var(--padding-lg) var(--padding-xl)',
     margin: '0 var(--padding-lg) var(--padding-md)',
-    backgroundColor: 'rgb(240, 240, 240)',
+    backgroundColor: isDarkBg ? 'rgba(255,255,255,0.12)' : 'rgb(240, 240, 240)',
     borderRadius: 'var(--border-radius-lg)',
     position: 'relative' as const,
     zIndex: 2,
-  } as SxProps<Theme>,
+  } as SxProps<Theme>),
   replicateCtaLabels: {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: 2,
   } as SxProps<Theme>,
-  replicateCtaLine1: {
+  replicateCtaLine1: (isDarkBg: boolean) => ({
     fontSize: 'var(--font-size-sm)',
     fontWeight: 'var(--font-weight-medium)',
-    color: 'var(--color-gray-600)',
+    color: isDarkBg ? 'rgba(255,255,255,0.8)' : 'var(--color-gray-600)',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.02em',
     lineHeight: 1.2,
-  } as SxProps<Theme>,
-  replicateCtaLine2: {
+  } as SxProps<Theme>),
+  replicateCtaLine2: (isDarkBg: boolean) => ({
     fontSize: 'var(--font-size-md)',
     fontWeight: 'var(--font-weight-bold)',
-    color: 'var(--color-gray-800)',
+    color: isDarkBg ? 'var(--color-white)' : 'var(--color-gray-800)',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.02em',
     lineHeight: 1.2,
-  } as SxProps<Theme>,
-  replicateCtaButton: {
+  } as SxProps<Theme>),
+  replicateCtaButton: (isDarkBg: boolean) => ({
     flexShrink: 0,
     padding: 'var(--padding-sm) var(--padding-lg)',
-    backgroundColor: 'rgb(80, 80, 80)',
-    color: 'var(--color-white)',
+    backgroundColor: isDarkBg ? 'var(--color-white)' : 'rgb(80, 80, 80)',
+    color: isDarkBg ? 'var(--color-black)' : 'var(--color-white)',
     fontSize: 'var(--font-size-sm)',
     fontWeight: 'var(--font-weight-semibold)',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.02em',
     borderRadius: 'var(--border-radius-md)',
-    border: 'none',
+    border: isDarkBg ? '2px solid var(--color-white)' : '2px solid var(--color-black)',
     cursor: 'pointer',
     whiteSpace: 'nowrap' as const,
     '&:hover': {
-      backgroundColor: 'rgb(60, 60, 60)',
+      backgroundColor: isDarkBg ? 'rgba(255,255,255,0.9)' : 'rgb(60, 60, 60)',
     },
     '&:active': {
       transform: 'scale(0.98)',
     },
-  } as SxProps<Theme>,
+  } as SxProps<Theme>),
 
   createOwnPageLinkWrap: {
     display: 'flex',
     justifyContent: 'center',
-    padding: '0 var(--padding-lg) var(--padding-md)',
+    padding: '0 var(--padding-lg) var(--padding-2xl)',
   } as SxProps<Theme>,
-  createOwnPageLink: {
-    background: 'none',
-    border: 'none',
-    padding: 0,
+  createOwnPageLink: (isDarkBg: boolean) => ({
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 'var(--padding-md) var(--padding-xl)',
+    backgroundColor: isDarkBg ? 'rgba(255,255,255,0.15)' : 'var(--color-white)',
+    color: isDarkBg ? 'var(--color-white)' : 'var(--color-black)',
+    border: isDarkBg ? '2px solid var(--color-white)' : '2px solid var(--color-black)',
+    borderRadius: 'var(--border-radius-lg)',
     cursor: 'pointer',
     fontSize: 'var(--font-size-sm)',
-    fontWeight: 'var(--font-weight-medium)',
-    color: 'var(--color-gray-700)',
-    textDecoration: 'underline',
+    fontWeight: 'var(--font-weight-semibold)',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.02em',
+    boxShadow: isDarkBg ? 'none' : '0 1px 3px rgba(0,0,0,0.08)',
+    textDecoration: 'none',
+    transition: 'background-color 0.2s, color 0.2s, border-color 0.2s',
     '&:hover': {
-      color: 'var(--color-gray-900)',
+      backgroundColor: isDarkBg ? 'rgba(255,255,255,0.25)' : 'var(--color-gray-100)',
     },
-  } as SxProps<Theme>,
+    '&:active': {
+      transform: 'scale(0.98)',
+    },
+  } as SxProps<Theme>),
 
   footer: {
     display: 'flex',
@@ -413,11 +425,12 @@ export const styles = {
     zIndex: 2,
   } as SxProps<Theme>,
 
-  footerLogo: {
+  footerLogo: (isDarkBg: boolean) => ({
     height: 'var(--height-mypage-icon-xs)',
     width: 'auto',
-    opacity: 0.8,
-  } as SxProps<Theme>,
+    opacity: 0.9,
+    filter: isDarkBg ? 'invert(1) brightness(2)' : 'none',
+  } as SxProps<Theme>),
 
   // Layout 1: Profile image centered, name below (vertical layout)
   layout1Container: {

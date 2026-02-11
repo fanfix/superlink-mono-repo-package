@@ -34,6 +34,7 @@ export default function MobilePreview({
   onReplicateClick,
   showCreateOwnPageLink = false,
   onCreateOwnPageClick,
+  compactSectionLayout = false,
 }: MobilePreviewProps) {
   const selectedFontData = fontsData.fonts.find((f) => f.value === selectedFont) || fontsData.fonts[0];
 
@@ -48,6 +49,21 @@ export default function MobilePreview({
   };
 
   const overlayColor = hexToRgba(backgroundColor, 0.6);
+
+  const isDarkBg = (() => {
+    if (!backgroundColor) return false;
+    const s = String(backgroundColor).toLowerCase();
+    if (s.includes('white') || s.includes('#fff') || s === 'transparent') return false;
+    if (s.includes('black') || s.includes('#000') || s.includes('181818') || s.includes('dark')) return true;
+    const hex = s.match(/#([0-9a-f]{6})/)?.[1];
+    if (hex) {
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.5;
+    }
+    return false;
+  })();
 
   return (
     <Box sx={styles.previewContainer}>
@@ -171,7 +187,7 @@ export default function MobilePreview({
 
             {/* Custom Sections */}
             {customSections.map((section) => (
-              <CustomSectionRenderer key={section.id} section={section} />
+              <CustomSectionRenderer key={section.id} section={section} compactLayout={compactSectionLayout} />
             ))}
 
             {/* Text Sections */}
@@ -190,42 +206,47 @@ export default function MobilePreview({
             )}
           </Box>
 
-          {/* Replicate profile CTA - "Like this profile? Replicate it." */}
+          {/* Order: Replicate CTA → SuperLink Logo → Create Your Own Page (matches mobile preview) */}
           {showReplicateCta && (
             <>
-              <Box sx={styles.replicateCtaContainer}>
+              <Box sx={styles.replicateCtaContainer(isDarkBg)}>
                 <Box sx={styles.replicateCtaLabels}>
-                  <Typography sx={styles.replicateCtaLine1}>Like this profile?</Typography>
-                  <Typography sx={styles.replicateCtaLine2}>Replicate it.</Typography>
+                  <Typography sx={styles.replicateCtaLine1(isDarkBg)}>Like this profile?</Typography>
+                  <Typography sx={styles.replicateCtaLine2(isDarkBg)}>Replicate it.</Typography>
                 </Box>
                 <Box
                   component="button"
                   type="button"
-                  sx={styles.replicateCtaButton}
+                  sx={styles.replicateCtaButton(isDarkBg)}
                   onClick={onReplicateClick ?? (() => {})}
                 >
                   Replicate this profile
                 </Box>
+              </Box>
+              <Box sx={styles.footer}>
+                <img src="/assets/landing/asset 0.svg" alt="SuperLink Logo" style={styles.footerLogo(isDarkBg) as React.CSSProperties} />
               </Box>
               {showCreateOwnPageLink && (
                 <Box sx={styles.createOwnPageLinkWrap}>
                   <Box
                     component="button"
                     type="button"
-                    sx={styles.createOwnPageLink}
+                    sx={styles.createOwnPageLink(isDarkBg)}
                     onClick={onCreateOwnPageClick ?? (() => {})}
                   >
-                    Create own page
+                    Create your own page
                   </Box>
                 </Box>
               )}
             </>
           )}
 
-          {/* SuperLink Logo Footer */}
-          <Box sx={styles.footer}>
-            <img src="/assets/landing/asset 0.svg" alt="SuperLink Logo" style={{ height: 'var(--height-mypage-icon-xs)', width: 'auto', opacity: 0.8 }} />
-          </Box>
+          {/* SuperLink Logo Footer - when replicate CTA is hidden */}
+          {!showReplicateCta && (
+            <Box sx={styles.footer}>
+              <img src="/assets/landing/asset 0.svg" alt="SuperLink Logo" style={styles.footerLogo(isDarkBg) as React.CSSProperties} />
+            </Box>
+          )}
         </Box>
       </Box>
     </Box>

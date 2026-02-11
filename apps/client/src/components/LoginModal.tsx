@@ -17,6 +17,7 @@ interface LoginModalProps {
 }
 
 const LOGO_GREEN = '#1CD069';
+const LOGO_IMG = '/assets/fulllogo_green.svg'; // Green SuperLink logo from public/assets
 
 const phoneInputContainerStyles = {
   width: '100%',
@@ -92,7 +93,7 @@ export function LoginModal({ open, onClose, onContinue }: LoginModalProps) {
   const [phoneDigits, setPhoneDigits] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const countryCode = useOriginCountry(open);
+  const { countryCode, originResult } = useOriginCountry(open);
 
   const handleContinue = async () => {
     setError('');
@@ -130,16 +131,17 @@ export function LoginModal({ open, onClose, onContinue }: LoginModalProps) {
       onClose={onClose}
       PaperProps={{
         sx: {
-          borderRadius: 'var(--border-radius-lg)',
+          borderRadius: 'var(--border-radius-xl)',
           padding: 0,
           maxWidth: '90vw',
-          width: 400,
+          width: 480,
           maxHeight: '90vh',
           overflow: 'auto',
           boxShadow: '0 24px 48px rgba(0,0,0,0.12)',
+          backgroundColor: 'var(--color-white)',
         },
       }}
-      slotProps={{ backdrop: { sx: { backgroundColor: 'rgba(0,0,0,0.4)' } } }}
+      slotProps={{ backdrop: { sx: { backgroundColor: 'rgba(0,0,0,0.5)' } } }}
     >
       <DialogContent sx={{ p: 0, position: 'relative' }}>
         <IconButton
@@ -151,10 +153,10 @@ export function LoginModal({ open, onClose, onContinue }: LoginModalProps) {
         </IconButton>
 
         <Box sx={{ pt: 5, px: 3, pb: 3, textAlign: 'center' }}>
-          {/* Logo - centered, larger */}
+          {/* Logo - green SuperLink from public/assets */}
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 3, px: 2 }}>
             <img
-              src="/assets/landing/asset 0.svg"
+              src={LOGO_IMG}
               alt="SuperLink"
               style={{ width: 180, maxWidth: '100%', height: 'auto', objectFit: 'contain' }}
             />
@@ -174,6 +176,12 @@ export function LoginModal({ open, onClose, onContinue }: LoginModalProps) {
 
           {error && (
             <Typography sx={{ fontSize: 'var(--font-size-sm)', color: '#dc2626', mb: 1 }}>{error}</Typography>
+          )}
+
+          {originResult && (
+            <Typography sx={{ fontSize: 12, color: 'var(--color-gray-500)', mb: 1 }}>
+              Detected region: {originResult.country.toUpperCase()}
+            </Typography>
           )}
 
           {/* Phone input */}

@@ -6,6 +6,7 @@ import {
   addCustomSectionApi,
   updateCustomSectionApi,
   removeCustomSectionApi,
+  reorderCustomSectionsApi,
   addCustomSectionLinkApi,
   updateCustomSectionLinkApi,
   removeCustomSectionLinkApi,
@@ -18,6 +19,7 @@ import type {
   AddCustomSectionResponse,
   UpdateCustomSectionResponse,
   RemoveCustomSectionResponse,
+  ReorderCustomSectionsResponse,
   AddCustomSectionLinkResponse,
   UpdateCustomSectionLinkResponse,
   RemoveCustomSectionLinkResponse,
@@ -27,6 +29,7 @@ interface CustomSectionsContextValue {
   adding: boolean;
   updating: boolean;
   removing: boolean;
+  reordering: boolean;
   addingLink: boolean;
   updatingLink: boolean;
   removingLink: boolean;
@@ -34,6 +37,7 @@ interface CustomSectionsContextValue {
   addCustomSection: (input: CreateCustomSectionInput) => Promise<AddCustomSectionResponse>;
   updateCustomSection: (customSectionId: string, input: UpdateCustomSectionInput) => Promise<UpdateCustomSectionResponse>;
   removeCustomSection: (customSectionId: string) => Promise<RemoveCustomSectionResponse>;
+  reorderCustomSections: (customSectionIds: string[]) => Promise<ReorderCustomSectionsResponse>;
   addCustomSectionLink: (customSectionId: string, input: CreateCustomSectionLinkInput) => Promise<AddCustomSectionLinkResponse>;
   updateCustomSectionLink: (customSectionLinkId: string, input: UpdateCustomSectionLinkInput) => Promise<UpdateCustomSectionLinkResponse>;
   removeCustomSectionLink: (customSectionLinkId: string) => Promise<RemoveCustomSectionLinkResponse>;
@@ -54,6 +58,7 @@ export function CustomSectionsProvider({ children }: CustomSectionsProviderProps
   const [addingLink, setAddingLink] = useState(false);
   const [updatingLink, setUpdatingLink] = useState(false);
   const [removingLink, setRemovingLink] = useState(false);
+  const [reordering, setReordering] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const addCustomSection = useCallback(async (input: CreateCustomSectionInput): Promise<AddCustomSectionResponse> => {
@@ -101,6 +106,21 @@ export function CustomSectionsProvider({ children }: CustomSectionsProviderProps
       throw err;
     } finally {
       setRemoving(false);
+    }
+  }, [refreshUser]);
+
+  const reorderCustomSections = useCallback(async (customSectionIds: string[]): Promise<ReorderCustomSectionsResponse> => {
+    try {
+      setReordering(true);
+      setError(null);
+      const response = await reorderCustomSectionsApi(customSectionIds);
+      await refreshUser();
+      return response;
+    } catch (err: any) {
+      setError(err);
+      throw err;
+    } finally {
+      setReordering(false);
     }
   }, [refreshUser]);
 
@@ -165,6 +185,7 @@ export function CustomSectionsProvider({ children }: CustomSectionsProviderProps
     adding,
     updating,
     removing,
+    reordering,
     addingLink,
     updatingLink,
     removingLink,
@@ -172,6 +193,7 @@ export function CustomSectionsProvider({ children }: CustomSectionsProviderProps
     addCustomSection,
     updateCustomSection,
     removeCustomSection,
+    reorderCustomSections,
     addCustomSectionLink,
     updateCustomSectionLink,
     removeCustomSectionLink,

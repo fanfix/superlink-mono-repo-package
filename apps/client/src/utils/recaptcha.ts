@@ -22,7 +22,10 @@ declare global {
 }
 
 // const RECAPTCHA_SITE_KEY = '6Ld1XF0sAAAAAAAl0op6cWo88bp53vlWI0VHgYzI'; // prod keys
-const RECAPTCHA_SITE_KEY = '6LdRN1osAAAAAEZqVEOq0MXLVlg___42QaXACNWq';
+const RECAPTCHA_SITE_KEY =
+  process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ||
+  process.env.NEXT_PUBLIC_RECAPTCHA_KEY ||
+  '6LdRN1osAAAAAEZqVEOq0MXLVlg___42QaXACNWq';
 const RECAPTCHA_SCRIPT_ID = 'recaptcha-script';
 
 /**

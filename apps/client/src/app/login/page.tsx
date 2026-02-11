@@ -24,7 +24,7 @@ function LoginContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [shouldRender, setShouldRender] = useState(false);
-  const countryCode = useOriginCountry();
+  const { countryCode } = useOriginCountry();
 
   // useLayoutEffect runs synchronously before paint - prevents flash
   useLayoutEffect(() => {

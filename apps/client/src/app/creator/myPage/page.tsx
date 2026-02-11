@@ -37,6 +37,7 @@ import {
   useAddCustomSection,
   useUpdateCustomSection,
   useRemoveCustomSection,
+  useReorderCustomSections,
   useAddCustomSectionLink,
   useUpdateCustomSectionLink,
   useRemoveCustomSectionLink,
@@ -110,6 +111,7 @@ export default function MyPage() {
   const { execute: addCustomSection } = useAddCustomSection();
   const { execute: updateCustomSection } = useUpdateCustomSection();
   const { execute: removeCustomSection } = useRemoveCustomSection();
+  const { execute: reorderCustomSections } = useReorderCustomSections();
   const { execute: addCustomSectionLink } = useAddCustomSectionLink();
   const { execute: updateCustomSectionLink } = useUpdateCustomSectionLink();
   const { execute: removeCustomSectionLink } = useRemoveCustomSectionLink();
@@ -776,35 +778,37 @@ export default function MyPage() {
     );
   }, []);
 
-  const handleReorderSectionsInCustomSectionsEmbeds = useCallback((sectionIds: string[]) => {
+  const handleReorderSectionsInCustomSectionsEmbeds = useCallback(async (sectionIds: string[]) => {
     // sectionIds array contains 'exclusive-content' and custom section IDs in new order
-    // Update the order state to reflect the new position
-    setCustomSectionsOrder(sectionIds);
-    
-    // Also reorder customSections based on this order (excluding 'exclusive-content')
     const exclusiveContentId = 'exclusive-content';
     const customSectionIds = sectionIds.filter((id) => id !== exclusiveContentId);
-    
+
+    // Update local state immediately for instant UI feedback
+    setCustomSectionsOrder(sectionIds);
+
     setCustomSections((prev) => {
-      // Create a map for quick lookup
       const sectionMap = new Map(prev.map((s) => [s.id, s]));
-      // Reorder based on the new order
       const reordered: CustomSection[] = [];
       for (const id of customSectionIds) {
         const section = sectionMap.get(id);
-        if (section) {
-          reordered.push(section);
-        }
+        if (section) reordered.push(section);
       }
-      // Add any sections that weren't in the reorder list (shouldn't happen, but safety)
       for (const section of prev) {
-        if (!customSectionIds.includes(section.id)) {
-          reordered.push(section);
-        }
+        if (!customSectionIds.includes(section.id)) reordered.push(section);
       }
       return reordered;
     });
-  }, []);
+
+    // Call backend API when custom sections order changes
+    if (customSectionIds.length > 0) {
+      try {
+        await reorderCustomSections(customSectionIds);
+        showToast('Sections reordered successfully', 'success');
+      } catch {
+        showToast('Failed to reorder sections', 'error');
+      }
+    }
+  }, [reorderCustomSections, showToast]);
 
   const handleAddTextSection = useCallback(async (title: string, content: string) => {
     try {

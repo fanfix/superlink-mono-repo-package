@@ -17,14 +17,15 @@ export function ReplicationWarningModal({ open, onClose }: ReplicationWarningMod
       onClose={onClose}
       PaperProps={{
         sx: {
-          borderRadius: 'var(--border-radius-lg)',
+          borderRadius: 'var(--border-radius-xl)',
           padding: 0,
           maxWidth: '90vw',
-          width: 400,
+          width: 520,
           boxShadow: '0 24px 48px rgba(0,0,0,0.12)',
+          backgroundColor: 'var(--color-white)',
         },
       }}
-      slotProps={{ backdrop: { sx: { backgroundColor: 'rgba(0,0,0,0.4)' } } }}
+      slotProps={{ backdrop: { sx: { backgroundColor: 'rgba(0,0,0,0.5)' } } }}
     >
       <DialogContent sx={{ p: 0, position: 'relative' }}>
         <IconButton
@@ -57,7 +58,7 @@ export function ReplicationWarningModal({ open, onClose }: ReplicationWarningMod
               color: 'var(--color-black)',
               lineHeight: 1.5,
               mb: 3,
-              maxWidth: 320,
+              maxWidth: 400,
             }}
           >
             The profile replication feature is only available for new users. Since you are
@@ -65,14 +66,17 @@ export function ReplicationWarningModal({ open, onClose }: ReplicationWarningMod
             assistance, please contact support.
           </Typography>
           <Button
-            variant="primary-dark"
             onClick={onClose}
             sx={{
               height: 48,
               minWidth: 200,
-              borderRadius: 'var(--border-radius-md)',
+              borderRadius: 'var(--border-radius-lg)',
               textTransform: 'none',
               fontWeight: 600,
+              fontSize: 'var(--font-size-md)',
+              backgroundColor: 'var(--color-black)',
+              color: 'var(--color-white)',
+              '&:hover': { backgroundColor: 'var(--color-gray-800)' },
             }}
           >
             Okay

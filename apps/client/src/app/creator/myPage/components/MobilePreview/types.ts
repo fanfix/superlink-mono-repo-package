@@ -86,4 +86,6 @@ export interface MobilePreviewProps {
   showCreateOwnPageLink?: boolean;
   /** Called when user clicks "Create own page" (e.g. navigate to signup) */
   onCreateOwnPageClick?: () => void;
+  /** When true (e.g. public username page), sections use compact layout (3 cols, smaller gap/size). Mypage keeps default. */
+  compactSectionLayout?: boolean;
 }

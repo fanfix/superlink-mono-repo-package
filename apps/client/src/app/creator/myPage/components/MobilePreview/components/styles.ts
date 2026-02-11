@@ -304,6 +304,12 @@ export const styles = {
     fontSize: 'var(--font-size-md-1)',
     fontWeight: 'var(--font-weight-semibold)',
     color: 'var(--color-black)',
+    whiteSpace: 'normal' as const,
+    wordBreak: 'break-word' as const,
+    display: '-webkit-box' as const,
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical' as const,
+    overflow: 'hidden',
   } as SxProps<Theme>,
 
   customSectionItemPrice: {
@@ -447,10 +453,10 @@ export const styles = {
   } as SxProps<Theme>,
 
   customSectionParallelImage: {
-    width: 56,
-    height: 56,
-    minWidth: 56,
-    minHeight: 56,
+    width: 44,
+    height: 44,
+    minWidth: 44,
+    minHeight: 44,
     borderRadius: 'var(--border-radius-sm)',
     objectFit: 'cover' as const,
     flexShrink: 0,
@@ -460,10 +466,10 @@ export const styles = {
   } as SxProps<Theme>,
 
   customSectionParallelImagePlaceholder: {
-    width: 56,
-    height: 56,
-    minWidth: 56,
-    minHeight: 56,
+    width: 44,
+    height: 44,
+    minWidth: 44,
+    minHeight: 44,
     borderRadius: 'var(--border-radius-sm)',
     backgroundColor: 'var(--color-gray-200)',
     flexShrink: 0,
@@ -502,9 +508,12 @@ export const styles = {
     fontSize: 'var(--font-size-md-1)',
     fontWeight: 'var(--font-weight-semibold)',
     color: 'var(--color-black)',
+    whiteSpace: 'normal' as const,
+    wordBreak: 'break-word' as const,
+    display: '-webkit-box' as const,
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical' as const,
     overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
   } as SxProps<Theme>,
 
   customSectionParallelUrl: {
@@ -512,7 +521,11 @@ export const styles = {
     color: 'var(--color-gray-600)',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
+    whiteSpace: 'normal' as const,
+    wordBreak: 'break-word' as const,
+    display: '-webkit-box' as const,
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical' as const,
   } as SxProps<Theme>,
 
   customSectionParallelTitleOverlay: {
@@ -525,6 +538,43 @@ export const styles = {
     textShadow: 'var(--shadow-mypage-text)',
     zIndex: 2,
     maxWidth: 'calc(100% - 16px)',
+  } as SxProps<Theme>,
+
+  /** Compact layout for public username page only (3 cols, smaller gap/size). Mypage keeps default. */
+  customSectionRowCompact: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: 4,
+    width: '100%',
+    padding: 0,
+    margin: 0,
+    boxSizing: 'border-box' as const,
+  } as SxProps<Theme>,
+  customSectionRowItemCompact: {
+    aspectRatio: '1/1',
+  } as SxProps<Theme>,
+  customSectionParallelCompact: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: 4,
+    width: '100%',
+    boxSizing: 'border-box' as const,
+  } as SxProps<Theme>,
+  customSectionParallelItemCompact: {
+    gap: 'var(--spacing-mypage-gap-xs)',
+    padding: 'var(--padding-sm)',
+  } as SxProps<Theme>,
+  customSectionParallelImageCompact: {
+    width: 36,
+    height: 36,
+    minWidth: 36,
+    minHeight: 36,
+  } as SxProps<Theme>,
+  customSectionParallelImagePlaceholderCompact: {
+    width: 36,
+    height: 36,
+    minWidth: 36,
+    minHeight: 36,
   } as SxProps<Theme>,
 
   textSection: {

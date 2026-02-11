@@ -1118,6 +1118,13 @@ export interface RemoveCustomSectionResponse {
   __typename?: string;
 }
 
+export interface ReorderCustomSectionsResponseItem {
+  id: string;
+  __typename?: string;
+}
+
+export type ReorderCustomSectionsResponse = ReorderCustomSectionsResponseItem[];
+
 // ==================== Brand Kit Input Types ====================
 export interface CreateEngagementDto {
   title: string;

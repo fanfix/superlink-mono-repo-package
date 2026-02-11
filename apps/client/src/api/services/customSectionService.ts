@@ -15,12 +15,14 @@ import {
   AddCustomSectionLinkResponse,
   UpdateCustomSectionLinkResponse,
   RemoveCustomSectionLinkResponse,
+  ReorderCustomSectionsResponse,
   createApiError,
 } from '../types';
 import {
   ADD_CUSTOM_SECTION_MUTATION,
   UPDATE_CUSTOM_SECTION_MUTATION,
   REMOVE_CUSTOM_SECTION_MUTATION,
+  REORDER_CUSTOM_SECTIONS_MUTATION,
   ADD_CUSTOM_SECTION_LINK_MUTATION,
   UPDATE_CUSTOM_SECTION_LINK_MUTATION,
   REMOVE_CUSTOM_SECTION_LINK_MUTATION,
@@ -125,6 +127,25 @@ export const updateCustomSectionLinkApi = async (
 };
 
 /**
+ * Reorder Custom Sections
+ */
+export const reorderCustomSectionsApi = async (
+  customSectionIds: string[]
+): Promise<ReorderCustomSectionsResponse> => {
+  try {
+    const response = await executeGraphQL<{ reorderCustomSections: ReorderCustomSectionsResponse }>({
+      operationName: 'ReorderCustomSections',
+      query: REORDER_CUSTOM_SECTIONS_MUTATION,
+      variables: { customSectionIds },
+    });
+
+    return response.data.reorderCustomSections;
+  } catch (error: any) {
+    throw createApiError(error);
+  }
+};
+
+/**
  * Remove Custom Section Link
  */
 export const removeCustomSectionLinkApi = async (
@@ -147,6 +168,7 @@ export default {
   addCustomSectionApi,
   updateCustomSectionApi,
   removeCustomSectionApi,
+  reorderCustomSectionsApi,
   addCustomSectionLinkApi,
   updateCustomSectionLinkApi,
   removeCustomSectionLinkApi,
