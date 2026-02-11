@@ -20,8 +20,8 @@ interface SortableCustomSectionsEmbedsSectionProps {
   onAddCustomSection?: (sectionName: string, layout: 'list' | 'row' | 'parallel-row', useContentImageAsBackground: boolean) => void;
   onUpdateCustomSection?: (id: string, sectionName: string, layout: 'list' | 'row' | 'parallel-row', useContentImageAsBackground: boolean) => void;
   onDeleteCustomSection?: (id: string) => void;
-  onAddContentToCustomSection?: (sectionId: string, data: { thumbnail?: string; title: string; url: string; isEmail: boolean }) => void;
-  onUpdateContentInCustomSection?: (sectionId: string, itemId: string, data: { thumbnail?: string; title: string; url: string; isEmail: boolean }) => void;
+  onAddContentToCustomSection?: (sectionId: string, data: { thumbnail?: string; title: string; url: string; isEmail: boolean; content?: string }) => void;
+  onUpdateContentInCustomSection?: (sectionId: string, itemId: string, data: { thumbnail?: string; title: string; url: string; isEmail: boolean; content?: string }) => void;
   onDeleteContentFromCustomSection?: (sectionId: string, itemId: string) => void;
   onReorderItemsInCustomSection?: (sectionId: string, newItems: ContentItem[]) => void;
   onReorderSections?: (sectionIds: string[]) => void;

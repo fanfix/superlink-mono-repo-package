@@ -4,11 +4,13 @@ import { useSocialLinks } from '../contexts/SocialLinksContext';
 import {
   getCurrentUserApi,
   getProfileApi,
+  getPublicUserApi,
   updateProfileApi,
 } from '../api/services/profileService';
 import type {
   CurrentUser,
   Bio,
+  PublicUser,
   UpdateProfileInput,
   UpdateProfileResponse,
   UpdateUserInput,
@@ -25,6 +27,10 @@ export const useGetCurrentUser = () => {
 
 export const useGetProfile = () => {
   return useApiCall<Bio, [string]>(getProfileApi);
+};
+
+export const useGetPublicUser = (options?: { throwOnError?: boolean }) => {
+  return useApiCall<PublicUser, [string]>(getPublicUserApi, { throwOnError: options?.throwOnError ?? false });
 };
 
 export const useUpdateProfile = () => {

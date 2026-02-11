@@ -89,8 +89,13 @@ export const sharedModalStyles = {
     fontSize: 'var(--font-size-md-1)',
     fontWeight: 'var(--font-weight-semibold)',
     textTransform: 'none' as const,
-    '&:hover': {
-      backgroundColor: 'var(--color-mypage-text-dark-alt)',
+    '&:not(:disabled)': {
+      backgroundColor: 'var(--color-black)',
+      color: 'var(--color-white)',
+    },
+    '&:hover:not(:disabled)': {
+      backgroundColor: 'var(--color-mypage-text-dark-alt, #333)',
+      color: 'var(--color-white)',
     },
     '&:disabled': {
       backgroundColor: 'var(--color-gray-300)',

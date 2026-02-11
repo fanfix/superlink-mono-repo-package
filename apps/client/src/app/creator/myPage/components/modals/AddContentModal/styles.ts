@@ -121,15 +121,20 @@ export const styles = {
   } as SxProps<Theme>,
 
   addButton: {
-    backgroundColor: 'var(--color-gray-400)',
+    backgroundColor: 'var(--color-black)',
     color: 'var(--color-white)',
     borderRadius: 'var(--border-radius-lg)',
     padding: 'var(--padding-md) var(--padding-xl)',
     fontSize: 'var(--font-size-md-1)',
     fontWeight: 'var(--font-weight-semibold)',
     textTransform: 'none' as const,
-    '&:hover': {
-      backgroundColor: 'var(--color-gray-500)',
+    '&:not(:disabled)': {
+      backgroundColor: 'var(--color-black)',
+      color: 'var(--color-white)',
+    },
+    '&:hover:not(:disabled)': {
+      backgroundColor: 'var(--color-gray-800, #333)',
+      color: 'var(--color-white)',
     },
     '&.Mui-disabled': {
       backgroundColor: 'var(--color-gray-300)',

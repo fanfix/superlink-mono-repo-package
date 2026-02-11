@@ -3,7 +3,7 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { Typography } from '@superline/design-system';
-import { Share } from '@mui/icons-material';
+import { ShareIconSvg } from '../../constants/icons';
 import fontsData from '../../fonts.json';
 import { styles } from './styles';
 import { MobilePreviewProps } from './types';
@@ -30,6 +30,10 @@ export default function MobilePreview({
   engagements = [],
   pricing = [],
   customButtons = [],
+  showReplicateCta = false,
+  onReplicateClick,
+  showCreateOwnPageLink = false,
+  onCreateOwnPageClick,
 }: MobilePreviewProps) {
   const selectedFontData = fontsData.fonts.find((f) => f.value === selectedFont) || fontsData.fonts[0];
 
@@ -59,7 +63,7 @@ export default function MobilePreview({
 
             {/* Share Button - Top Right */}
             <Box sx={styles.shareButton}>
-              <Share sx={styles.shareIcon} />
+              <ShareIconSvg sx={styles.shareIcon} />
             </Box>
 
             {/* Bottom Blur Gradient - Only bottom line blur */}
@@ -124,11 +128,18 @@ export default function MobilePreview({
             )}
           </Box>
 
-          {/* Social Icons - Below Profile Avatar */}
+          {/* Social Icons - black circle + white icon (mono) in mobile preview */}
           {socialLinks.length > 0 && (
             <Box sx={styles.socialIconsContainer}>
               {socialLinks.map((link, index) => (
-                <Box key={index} sx={styles.socialIconCircle}>
+                <Box
+                  key={index}
+                  component="a"
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={styles.socialIconCircle}
+                >
                   {link.icon}
                 </Box>
               ))}
@@ -178,6 +189,38 @@ export default function MobilePreview({
               />
             )}
           </Box>
+
+          {/* Replicate profile CTA - "Like this profile? Replicate it." */}
+          {showReplicateCta && (
+            <>
+              <Box sx={styles.replicateCtaContainer}>
+                <Box sx={styles.replicateCtaLabels}>
+                  <Typography sx={styles.replicateCtaLine1}>Like this profile?</Typography>
+                  <Typography sx={styles.replicateCtaLine2}>Replicate it.</Typography>
+                </Box>
+                <Box
+                  component="button"
+                  type="button"
+                  sx={styles.replicateCtaButton}
+                  onClick={onReplicateClick ?? (() => {})}
+                >
+                  Replicate this profile
+                </Box>
+              </Box>
+              {showCreateOwnPageLink && (
+                <Box sx={styles.createOwnPageLinkWrap}>
+                  <Box
+                    component="button"
+                    type="button"
+                    sx={styles.createOwnPageLink}
+                    onClick={onCreateOwnPageClick ?? (() => {})}
+                  >
+                    Create own page
+                  </Box>
+                </Box>
+              )}
+            </>
+          )}
 
           {/* SuperLink Logo Footer */}
           <Box sx={styles.footer}>

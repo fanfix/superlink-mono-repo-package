@@ -7,19 +7,23 @@ import { Close as CloseIcon } from '@mui/icons-material';
 import { AddContentModalProps } from './types';
 import { styles } from './styles';
 
-export default function AddContentModal({ open, onClose, onAdd, onDelete, sectionId, editingItem }: AddContentModalProps) {
+export default function AddContentModal({ open, onClose, onAdd, onDelete, sectionId, sectionLayout, editingItem }: AddContentModalProps) {
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [isEmail, setIsEmail] = useState(false);
+  const [content, setContent] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isParallelSection = sectionLayout === 'parallel-row';
 
   const resetForm = useCallback(() => {
     setThumbnail(null);
     setTitle('');
     setUrl('');
     setIsEmail(false);
+    setContent('');
     setDragActive(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -33,6 +37,7 @@ export default function AddContentModal({ open, onClose, onAdd, onDelete, sectio
         setUrl(editingItem.url || '');
         setIsEmail(editingItem.isEmail || false);
         setThumbnail(editingItem.imageUrl || null);
+        setContent(editingItem.content ?? '');
       } else {
         resetForm();
       }
@@ -101,10 +106,11 @@ export default function AddContentModal({ open, onClose, onAdd, onDelete, sectio
         title: title.trim(),
         url: url.trim(),
         isEmail,
+        ...(isParallelSection && { content: content.trim() }),
       });
       handleClose();
     }
-  }, [sectionId, thumbnail, title, url, isEmail, onAdd, handleClose]);
+  }, [sectionId, thumbnail, title, url, isEmail, content, isParallelSection, onAdd, handleClose]);
 
   const handleDelete = useCallback(() => {
     if (editingItem && onDelete) {
@@ -250,6 +256,22 @@ export default function AddContentModal({ open, onClose, onAdd, onDelete, sectio
             size="md"
           />
         </Box>
+
+        {/* Content (only for parallel section) */}
+        {isParallelSection && (
+          <Box>
+            <Typography sx={styles.label}>Content</Typography>
+            <OutlinedInput
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Content"
+              sx={styles.input}
+              fullWidth
+              multiline
+              minRows={2}
+            />
+          </Box>
+        )}
 
         {/* Add/Update/Delete Buttons */}
         <Box sx={{ display: 'flex', gap: 'var(--padding-md)', flexDirection: isEditMode ? 'column' : 'row' }}>

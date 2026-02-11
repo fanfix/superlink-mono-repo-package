@@ -1,15 +1,60 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Box, IconButton, Tooltip } from '@mui/material';
 import { Typography } from '@superline/design-system';
-import { Link as LinkIcon, Email as EmailIcon } from '@mui/icons-material';
+import { Email as EmailIcon, ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { CustomSection } from '../types';
 import { styles } from './styles';
+import { LinkIconSvg } from '../../../constants/icons';
+import { getPlatformFromUrl, getSocialIcon, SOCIAL_BRAND_COLORS } from '../../sections/SocialLinksSection/utils/socialIcons';
+import { EmbedMaker, getEmbedPlatform } from '../../../embedPreview';
 
 interface CustomSectionRendererProps {
   section: CustomSection;
 }
 
+const LINK_ICON_COLOR = 'var(--color-black)';
+
+/** Resolve link icon: platform icon if URL matches a known platform, else default link/email icon (black). */
+function getLinkIcon(item: { url?: string; isEmail?: boolean }, size: number) {
+  if (item.isEmail) return <EmailIcon sx={{ fontSize: size, color: LINK_ICON_COLOR }} />;
+  const platform = getPlatformFromUrl(item.url, item.isEmail);
+  if (platform) return getSocialIcon(platform, size, LINK_ICON_COLOR);
+  return <LinkIconSvg width={size} height={size} sx={{ color: LINK_ICON_COLOR }} />;
+}
+
+/** Placeholder when no thumbnail: platform colored box + icon if URL matches, else gray + link icon */
+function getNoThumbnailPlaceholder(item: { url?: string; isEmail?: boolean }, iconSize: number) {
+  const platform = getPlatformFromUrl(item.url, item.isEmail);
+  const bgColor = platform && SOCIAL_BRAND_COLORS[platform] ? SOCIAL_BRAND_COLORS[platform] : undefined;
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: bgColor || 'var(--color-gray-200)',
+        borderRadius: 'inherit',
+      }}
+    >
+      {item.isEmail ? (
+        <EmailIcon sx={{ fontSize: iconSize, color: bgColor ? '#fff' : 'var(--color-gray-500)' }} />
+      ) : platform ? (
+        getSocialIcon(platform, iconSize, bgColor ? '#fff' : 'var(--color-gray-500)')
+      ) : (
+        <LinkIconSvg width={iconSize} height={iconSize} sx={{ color: 'var(--color-gray-500)' }} />
+      )}
+    </Box>
+  );
+}
+
+const EMBED_SLIDER_ITEM_WIDTH = 280;
+const EMBED_SLIDER_GAP = 16;
+
 export function CustomSectionRenderer({ section }: CustomSectionRendererProps) {
+  const embedSliderRef = useRef<HTMLDivElement>(null);
+
   const handleLinkClick = (item: { url?: string; isEmail?: boolean }) => {
     if (!item.url) return;
     
@@ -29,9 +74,15 @@ export function CustomSectionRenderer({ section }: CustomSectionRendererProps) {
   };
 
   const rowImageContainerStyles = {
-    position: 'relative',
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     width: '100%',
     height: '100%',
+    padding: 0,
+    margin: 0,
   };
 
   const renderLayout = () => {
@@ -40,36 +91,31 @@ export function CustomSectionRenderer({ section }: CustomSectionRendererProps) {
         return (
           <Box sx={styles.customSectionList}>
             {section.items.map((item) => (
-              <Box key={item.id} sx={styles.customSectionListItem}>
+              <Box key={item.id} sx={styles.customSectionListItem} onClick={() => item.url && handleLinkClick(item)} role={item.url ? 'link' : undefined}>
                 {item.imageUrl ? (
-                  <Box sx={listImageContainerStyles}>
-                    <Box component="img" src={item.imageUrl} alt={item.title} sx={styles.customSectionListImage} />
-                    <Typography sx={styles.customSectionListTitleOverlay}>{item.title}</Typography>
-                    {item.url && (
-                      <IconButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleLinkClick(item);
-                        }}
-                        size="small"
-                        sx={styles.customSectionListLinkIcon}
-                      >
-                        {item.isEmail ? (
-                          <EmailIcon sx={{ fontSize: '18px', color: 'var(--color-black)' }} />
-                        ) : (
-                          <LinkIcon sx={{ fontSize: '18px', color: 'var(--color-black)' }} />
+                  <>
+                    <Box sx={styles.customSectionListImageWrap}>
+                      <Box sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+                        <Box component="img" src={item.imageUrl} alt={item.title} sx={styles.customSectionListImage} />
+                        {item.url && (
+                          <IconButton
+                            onClick={(e) => { e.stopPropagation(); handleLinkClick(item); }}
+                            size="small"
+                            sx={styles.customSectionListLinkIcon}
+                          >
+                            {getLinkIcon(item, 18)}
+                          </IconButton>
                         )}
-                      </IconButton>
-                    )}
-                  </Box>
+                      </Box>
+                    </Box>
+                    <Box sx={styles.customSectionListContent}>
+                      <Typography sx={styles.customSectionItemTitle}>{item.title}</Typography>
+                    </Box>
+                  </>
                 ) : (
                   <Box sx={styles.customSectionListItemFallback}>
-                    <Box sx={styles.customSectionListIcon}>
-                      {item.isEmail ? (
-                        <EmailIcon sx={styles.emailIconGray} />
-                      ) : (
-                        <LinkIcon sx={styles.linkIconGray} />
-                      )}
+                    <Box sx={{ ...styles.customSectionListIcon, overflow: 'hidden', borderRadius: 'var(--border-radius-md)' }}>
+                      {getNoThumbnailPlaceholder(item, 32)}
                     </Box>
                     <Box sx={styles.customSectionItemContent}>
                       <Typography sx={styles.customSectionItemTitle}>{item.title}</Typography>
@@ -97,20 +143,19 @@ export function CustomSectionRenderer({ section }: CustomSectionRendererProps) {
                     <Typography sx={styles.customSectionRowTitleOverlay}>{item.title}</Typography>
                     {item.url && (
                       <IconButton
-                        onClick={() => handleLinkClick(item)}
+                        onClick={(e) => { e.stopPropagation(); handleLinkClick(item); }}
                         size="small"
                         sx={styles.customSectionRowLinkIcon}
                       >
-                        {item.isEmail ? (
-                          <EmailIcon sx={{ fontSize: '18px', color: 'var(--color-black)' }} />
-                        ) : (
-                          <LinkIcon sx={{ fontSize: '18px', color: 'var(--color-black)' }} />
-                        )}
+                        {getLinkIcon(item, 18)}
                       </IconButton>
                     )}
                   </Box>
                 ) : (
-                  <Typography sx={styles.customSectionRowTitle}>{item.title}</Typography>
+                  <Box sx={rowImageContainerStyles}>
+                    {getNoThumbnailPlaceholder(item, 40)}
+                    <Typography sx={styles.customSectionRowTitleOverlay}>{item.title}</Typography>
+                  </Box>
                 )}
               </Box>
             ))}
@@ -141,18 +186,19 @@ export function CustomSectionRenderer({ section }: CustomSectionRendererProps) {
                     {item.imageUrl ? (
                       <Box component="img" src={item.imageUrl} alt={item.title} sx={styles.customSectionParallelImage} />
                     ) : (
-                      <Box sx={styles.customSectionParallelImagePlaceholder} />
+                      <Box sx={{ ...styles.customSectionParallelImagePlaceholder, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {getNoThumbnailPlaceholder(item, 28)}
+                      </Box>
                     )}
                     <Box sx={styles.customSectionParallelIcon}>
-                      {item.isEmail ? (
-                        <EmailIcon sx={styles.emailIconSmall} />
-                      ) : (
-                        <LinkIcon sx={styles.linkIconSmall} />
-                      )}
+                      {getLinkIcon(item, 16)}
                     </Box>
                   </Box>
                   <Box sx={styles.customSectionParallelContent}>
                     <Typography sx={styles.customSectionParallelTitle}>{item.title}</Typography>
+                    {item.content?.trim() ? (
+                      <Typography sx={{ ...styles.customSectionParallelUrl, whiteSpace: 'normal' }}>{item.content.trim()}</Typography>
+                    ) : null}
                     {item.url ? (
                       <Typography sx={styles.customSectionParallelUrl}>{item.url}</Typography>
                     ) : item.price ? (
@@ -169,6 +215,83 @@ export function CustomSectionRenderer({ section }: CustomSectionRendererProps) {
         return null;
     }
   };
+
+  // Embed sections: list = Spotify-style stacked; row = slider with nav buttons
+  if (section.sectionType === 'embeds' && section.items.length > 0) {
+    const embedItems = section.items.filter((item) => item.url && getEmbedPlatform(item.url));
+    if (embedItems.length === 0) return null;
+
+    if (section.layout === 'list' || section.layout === 'parallel-row') {
+      return (
+        <Box sx={styles.customSection}>
+          <Typography sx={styles.customSectionName}>{section.name}</Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {embedItems.map((item) => {
+              const name = getEmbedPlatform(item.url!) || 'YouTube';
+              return (
+                <Box key={item.id} sx={{ width: '100%', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+                  <EmbedMaker url={item.url!} name={name} size="large" />
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+      );
+    }
+
+    if (section.layout === 'row') {
+      const scroll = (dir: 'left' | 'right') => {
+        const el = embedSliderRef.current;
+        if (!el) return;
+        const step = EMBED_SLIDER_ITEM_WIDTH + EMBED_SLIDER_GAP;
+        el.scrollBy({ left: dir === 'left' ? -step : step, behavior: 'smooth' });
+      };
+      return (
+        <Box sx={styles.customSection}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Typography sx={styles.customSectionName}>{section.name}</Typography>
+            <Box sx={{ display: 'flex', gap: 0.5 }}>
+              <IconButton size="small" onClick={() => scroll('left')} sx={{ bgcolor: 'var(--color-gray-100)' }}>
+                <ChevronLeft />
+              </IconButton>
+              <IconButton size="small" onClick={() => scroll('right')} sx={{ bgcolor: 'var(--color-gray-100)' }}>
+                <ChevronRight />
+              </IconButton>
+            </Box>
+          </Box>
+          <Box
+            ref={embedSliderRef}
+            sx={{
+              display: 'flex',
+              gap: EMBED_SLIDER_GAP,
+              overflowX: 'auto',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              scrollBehavior: 'smooth',
+              '&::-webkit-scrollbar': { display: 'none' },
+            }}
+          >
+            {embedItems.map((item) => {
+              const name = getEmbedPlatform(item.url!) || 'YouTube';
+              return (
+                <Box
+                  key={item.id}
+                  sx={{
+                    minWidth: EMBED_SLIDER_ITEM_WIDTH,
+                    flexShrink: 0,
+                    borderRadius: 'var(--border-radius-md)',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <EmbedMaker url={item.url!} name={name} size="small" />
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+      );
+    }
+  }
 
   return (
     <Box sx={styles.customSection}>

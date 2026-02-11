@@ -7,6 +7,7 @@ import { executeGraphQL } from '../config/graphqlClient';
 import {
   Bio,
   CurrentUser,
+  PublicUser,
   UpdateProfileInput,
   UpdateProfileResponse,
   UpdateBioInput,
@@ -24,6 +25,7 @@ import {
 import {
   GET_PROFILE_QUERY,
   CURRENT_USER_QUERY,
+  USER_QUERY,
   UPDATE_PROFILE_MUTATION,
   UPDATE_BIO_MUTATION,
   UPDATE_USER_MUTATION,
@@ -62,6 +64,24 @@ export const getProfileApi = async (username: string): Promise<Bio> => {
     });
 
     return response.data.getProfile;
+  } catch (error: any) {
+    throw createApiError(error);
+  }
+};
+
+/**
+ * Get Public User by usernameOrId (for public profile page)
+ * Uses User query; returns full bio with customSections for rendering.
+ */
+export const getPublicUserApi = async (usernameOrId: string): Promise<PublicUser> => {
+  try {
+    const response = await executeGraphQL<{ user: PublicUser }>({
+      operationName: 'User',
+      query: USER_QUERY,
+      variables: { usernameOrId },
+    });
+
+    return response.data.user;
   } catch (error: any) {
     throw createApiError(error);
   }
@@ -201,6 +221,7 @@ export const deleteSocialLinkApi = async (socialLinkId: string): Promise<{ id: s
 export default {
   getCurrentUserApi,
   getProfileApi,
+  getPublicUserApi,
   updateProfileApi,
   updateUserApi,
   updateBioApi,

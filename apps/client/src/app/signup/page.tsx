@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useLayoutEffect, Suspense } from 'react';
+import React, { useState, useLayoutEffect, Suspense } from 'react';
 import { Box } from '@mui/material';
 import { Button, Typography } from '@superline/design-system';
 import { isValidPhoneNumber } from 'react-phone-number-input';
@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import AuthLayout from '../../components/AuthLayout';
 import { getRecaptchaTokenForSendOTP } from '../../utils/recaptcha';
 import { useSendOTP } from '../../hooks/useAuthApi';
+import { useOriginCountry } from '../../hooks/useOriginCountry';
 import { useAuth } from '../../contexts/AuthContext';
 import { redirectIfAuthenticated } from '../../lib/authGuard';
 import Loader from '../../components/Loader';
@@ -20,10 +21,10 @@ function SignUpContent() {
   const { isAuthenticated, isLoading, userState, currentUser } = useAuth();
   // react-phone-input-2 expects digits only (no leading "+")
   const [phoneDigits, setPhoneDigits] = useState<string>('');
-  const [defaultCountry, setDefaultCountry] = useState<string>('us');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [shouldRender, setShouldRender] = useState(false);
+  const countryCode = useOriginCountry();
 
   // useLayoutEffect runs synchronously before paint - prevents flash
   useLayoutEffect(() => {
@@ -55,27 +56,6 @@ function SignUpContent() {
 
     checkAndRedirect();
   }, [router, isAuthenticated, isLoading, userState, currentUser]);
-
-  // Detect origin/country for default phone code (via internal API)
-  useEffect(() => {
-    let cancelled = false;
-    const detect = async () => {
-      try {
-        const res = await fetch('/api/origin', { method: 'GET' });
-        const json = (await res.json()) as { country?: string };
-        const code = (json.country || '').toLowerCase();
-        if (!cancelled && /^[a-z]{2}$/.test(code)) {
-          setDefaultCountry(code);
-        }
-      } catch {
-        // Ignore; fall back to US
-      }
-    };
-    detect();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   // Styling variables
   const containerStyles = {
@@ -311,7 +291,7 @@ function SignUpContent() {
         <Box sx={phoneInputContainerStyles}>
           <Box sx={phoneInputBorderStyles}>
             <PhoneInput
-              country={defaultCountry}
+              country={countryCode}
               value={phoneDigits}
               onChange={(value: string) => setPhoneDigits(value || '')}
               placeholder="Enter phone number"

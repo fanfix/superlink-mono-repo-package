@@ -172,11 +172,40 @@ export const styles = {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: 'var(--padding-md)',
+    width: '100%',
+    boxSizing: 'border-box' as const,
   } as SxProps<Theme>,
 
   customSectionListItem: {
-    marginBottom: 'var(--padding-md)',
     width: '100%',
+    display: 'flex',
+    alignItems: 'stretch',
+    borderRadius: 'var(--border-radius-md)',
+    overflow: 'hidden' as const,
+    backgroundColor: 'var(--color-black-overlay-5, rgba(0,0,0,0.05))',
+    borderBottom: '1px solid var(--color-gray-200, rgba(0,0,0,0.08))',
+    padding: 0,
+    cursor: 'pointer',
+  } as SxProps<Theme>,
+
+  customSectionListImageWrap: {
+    position: 'relative' as const,
+    flexShrink: 0,
+    width: 112,
+    height: 112,
+    minWidth: 112,
+    minHeight: 112,
+    padding: 0,
+    overflow: 'hidden' as const,
+  } as SxProps<Theme>,
+
+  customSectionListContent: {
+    flex: 1,
+    minWidth: 0,
+    padding: 'var(--padding-md) var(--padding-lg-1)',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    justifyContent: 'center',
   } as SxProps<Theme>,
 
   customSectionListImage: {
@@ -186,6 +215,9 @@ export const styles = {
     position: 'absolute' as const,
     top: 0,
     left: 0,
+    display: 'block' as const,
+    padding: 0,
+    margin: 0,
   } as SxProps<Theme>,
 
   customSectionListTitleOverlay: {
@@ -202,17 +234,22 @@ export const styles = {
 
   customSectionListLinkIcon: {
     position: 'absolute' as const,
-    top: 'var(--spacing-gap-sm)',
-    right: 'var(--spacing-gap-sm)',
-    backgroundColor: 'var(--color-white-overlay-95)',
-    padding: 'var(--spacing-gap-xs)',
+    top: 8,
+    right: 12,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 28,
+    height: 28,
+    backgroundColor: 'var(--color-white)',
     borderRadius: '50%',
+    color: 'var(--color-black)',
     boxShadow: 'var(--shadow-sm-15)',
+    zIndex: 30,
     '&:hover': {
       backgroundColor: 'var(--color-white)',
       boxShadow: 'var(--shadow-md-15)',
     },
-    zIndex: 2,
   } as SxProps<Theme>,
 
   customSectionListItemFallback: {
@@ -292,17 +329,22 @@ export const styles = {
 
   customSectionRowLinkIcon: {
     position: 'absolute' as const,
-    top: 'var(--spacing-gap-sm)',
-    right: 'var(--spacing-gap-sm)',
-    backgroundColor: 'var(--color-white-overlay-95)',
-    padding: 'var(--spacing-gap-xs)',
+    top: 8,
+    right: 12,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 28,
+    height: 28,
+    backgroundColor: 'var(--color-white)',
     borderRadius: '50%',
+    color: 'var(--color-black)',
     boxShadow: 'var(--shadow-sm-15)',
+    zIndex: 30,
     '&:hover': {
       backgroundColor: 'var(--color-white)',
       boxShadow: 'var(--shadow-md-15)',
     },
-    zIndex: 2,
   } as SxProps<Theme>,
 
   customSectionParallelLinkIcon: {
@@ -322,14 +364,20 @@ export const styles = {
 
   customSectionRow: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: 'var(--padding-sm)',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: 6,
+    width: '100%',
+    padding: 0,
+    margin: 0,
+    boxSizing: 'border-box' as const,
   } as SxProps<Theme>,
 
   customSectionRowItem: {
     display: 'flex',
     flexDirection: 'column' as const,
-    minWidth: 0,
+    width: '100%',
+    padding: 0,
+    margin: 0,
     borderRadius: 'var(--border-radius-sm)',
     overflow: 'hidden' as const,
     position: 'relative' as const,
@@ -343,6 +391,12 @@ export const styles = {
     position: 'absolute' as const,
     top: 0,
     left: 0,
+    right: 0,
+    bottom: 0,
+    display: 'block' as const,
+    padding: 0,
+    margin: 0,
+    boxSizing: 'border-box' as const,
   } as SxProps<Theme>,
 
   customSectionRowTitle: {
@@ -393,16 +447,23 @@ export const styles = {
   } as SxProps<Theme>,
 
   customSectionParallelImage: {
-    width: 'var(--width-mypage-profile-small)',
-    height: 'var(--height-mypage-profile-small)',
+    width: 56,
+    height: 56,
+    minWidth: 56,
+    minHeight: 56,
     borderRadius: 'var(--border-radius-sm)',
     objectFit: 'cover' as const,
     flexShrink: 0,
+    display: 'block' as const,
+    padding: 0,
+    margin: 0,
   } as SxProps<Theme>,
 
   customSectionParallelImagePlaceholder: {
-    width: 'var(--width-mypage-profile-small)',
-    height: 'var(--height-mypage-profile-small)',
+    width: 56,
+    height: 56,
+    minWidth: 56,
+    minHeight: 56,
     borderRadius: 'var(--border-radius-sm)',
     backgroundColor: 'var(--color-gray-200)',
     flexShrink: 0,

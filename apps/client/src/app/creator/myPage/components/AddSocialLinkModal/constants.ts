@@ -2,7 +2,14 @@ export interface SocialPlatform {
   value: string;
   label: string;
   urlPrefix: string;
+  /** When true, user enters full URL in one field (no prefix + username). */
+  fullUrl?: boolean;
+  /** When 'email', show email input with validation and store as mailto:... */
+  inputType?: 'url' | 'email';
 }
+
+/** Simple email validation regex */
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const SOCIAL_MEDIA_PLATFORMS: SocialPlatform[] = [
   { value: 'Instagram', label: 'Instagram', urlPrefix: 'https://www.instagram.com/' },
@@ -17,17 +24,15 @@ export const SOCIAL_MEDIA_PLATFORMS: SocialPlatform[] = [
   { value: 'Twitch', label: 'Twitch', urlPrefix: 'https://www.twitch.tv/' },
   { value: 'Reddit', label: 'Reddit', urlPrefix: 'https://www.reddit.com/user/' },
   { value: 'Telegram', label: 'Telegram', urlPrefix: 'https://t.me/' },
-  { value: 'AmazonWishlist', label: 'Amazon Wishlist', urlPrefix: 'https://www.amazon.com/hz/wishlist/ls/' },
-  { value: 'AppleMusic', label: 'Apple Music', urlPrefix: 'https://music.apple.com/' },
+  { value: 'Email', label: 'Email', urlPrefix: 'mailto:', inputType: 'email' },
+  { value: 'AmazonWishlist', label: 'Amazon Wishlist', urlPrefix: '', fullUrl: true },
+  { value: 'AppleMusic', label: 'Apple Music', urlPrefix: '', fullUrl: true },
   { value: 'Spotify', label: 'Spotify', urlPrefix: 'https://open.spotify.com/' },
-  { value: 'Shopify', label: 'Shopify', urlPrefix: 'https://' },
   { value: 'OnlyFans', label: 'OnlyFans', urlPrefix: 'https://onlyfans.com/' },
   { value: 'Fanfix', label: 'Fanfix', urlPrefix: 'https://fanfix.io/' },
   { value: 'Cameo', label: 'Cameo', urlPrefix: 'https://www.cameo.com/' },
   { value: 'CashApp', label: 'CashApp', urlPrefix: 'https://cash.app/$' },
-  { value: 'FamousBirthdays', label: 'Famous Birthdays', urlPrefix: 'https://www.famousbirthdays.com/' },
-  { value: 'Passes', label: 'Passes', urlPrefix: 'https://passes.com/' },
-  { value: 'PayPal', label: 'PayPal', urlPrefix: 'https://paypal.me/' },
+  { value: 'FamousBirthdays', label: 'Famous Birthdays', urlPrefix: '', fullUrl: true },
   { value: 'Threads', label: 'Threads', urlPrefix: 'https://www.threads.net/@' },
   { value: 'Other', label: 'Other', urlPrefix: '' },
 ];

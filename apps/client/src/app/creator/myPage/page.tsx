@@ -11,7 +11,7 @@ import PricingPackagesSection from './components/sections/PricingPackagesSection
 import MobilePreview from './components/MobilePreview';
 import type { ContentItem, CustomSection, TextSection, BrandKitItem, Engagement, Pricing } from './components/MobilePreview/types';
 import type { UploadContentData } from './components/UploadContentModal/types';
-import { getSocialIcon } from './components/sections/SocialLinksSection/utils/getSocialIcon';
+import { getSocialIcon, getSocialIconMono } from './components/sections/SocialLinksSection/utils/getSocialIcon';
 import { useAuth } from '../../../contexts/AuthContext';
 import Loader from '../../../components/Loader';
 import {
@@ -262,7 +262,7 @@ export default function MyPage() {
               .map((section) => ({
                 id: section.id,
                 name: section.name,
-                layout: section.rowMode === 'parallel_row' ? 'parallel-row' : section.isRow ? 'row' : 'list',
+                layout: section.rowMode === 'parallel_row' ? 'parallel-row' : section.rowMode === 'slider' ? 'row' : 'list',
                 useContentImageAsBackground: false,
                 sectionType: section.sectionType,
                 items: (section.sectionLinks || []).map((link) => ({
@@ -272,6 +272,7 @@ export default function MyPage() {
                   imageUrl: link.imageURL,
                   price: '',
                   isEmail: link.isEmail,
+                  ...(link.content != null && link.content !== '' && { content: link.content }),
                 })),
               }));
             setCustomSections(transformedSections);
@@ -535,8 +536,7 @@ export default function MyPage() {
       const isRow = layout === 'row' || layout === 'parallel-row';
       const isEmbed = sectionType === 'embeds';
       const listMode = 'fullscreen' as 'thumbnail' | 'fullscreen';
-      const rowMode = layout === 'parallel-row' ? 'parallel_row' : layout === 'row' ? 'grid' : 'slider';
-      
+      const rowMode = layout === 'parallel-row' ? 'parallel_row' : layout === 'list' ? 'grid' : 'slider';
       const response = await addCustomSection({
         name: sectionName,
         isRow,
@@ -575,7 +575,7 @@ export default function MyPage() {
     try {
       const isRow = layout === 'row' || layout === 'parallel-row';
       const listMode = 'fullscreen' as 'thumbnail' | 'fullscreen';
-      const rowMode = layout === 'parallel-row' ? 'parallel_row' : layout === 'row' ? 'grid' : 'slider';
+      const rowMode = layout === 'parallel-row' ? 'parallel_row' : layout === 'list' ? 'grid' : 'slider';
       
       await updateCustomSection(id, {
         name: sectionName,
@@ -586,10 +586,10 @@ export default function MyPage() {
       });
       
     setCustomSections((prev) =>
-      prev.map((section) =>
-        section.id === id
-          ? { ...section, name: sectionName, layout, useContentImageAsBackground }
-          : section
+      prev.map((s) =>
+        s.id === id
+          ? { ...s, name: sectionName, layout, useContentImageAsBackground }
+          : s
       )
     );
       showToast(isEmbed ? 'Embed section updated successfully' : 'Section updated successfully', 'success');
@@ -627,7 +627,8 @@ export default function MyPage() {
     return new File([u8arr], filename, { type: mime });
   }, []);
 
-  const handleAddContentToCustomSection = useCallback(async (sectionId: string, data: { thumbnail?: string | File; title: string; url: string; isEmail: boolean; size?: string }) => {
+  // Saves content to backend for any custom section (list, row, parallel-row). Used when user adds/edits items via Add Section / Add Content modal.
+  const handleAddContentToCustomSection = useCallback(async (sectionId: string, data: { thumbnail?: string | File; title: string; url: string; isEmail: boolean; size?: string; content?: string }) => {
     try {
       let imageURL: string = '';
       
@@ -648,7 +649,7 @@ export default function MyPage() {
         name: data.title,
         url: data.url,
         imageURL,
-        content: '',
+        content: data.content ?? '',
         isEmail: data.isEmail,
         size: data.size,
       });
@@ -661,6 +662,7 @@ export default function MyPage() {
           imageUrl: imageURL,
             url: data.url,
             isEmail: data.isEmail,
+          ...(data.content !== undefined && { content: data.content }),
           };
         
         setCustomSections((prev) =>
@@ -681,7 +683,7 @@ export default function MyPage() {
     }
   }, [addCustomSectionLink, uploadFile, base64ToFile, showToast]);
 
-  const handleUpdateContentInCustomSection = useCallback(async (sectionId: string, itemId: string, data: { thumbnail?: string | File; title: string; url: string; isEmail: boolean }) => {
+  const handleUpdateContentInCustomSection = useCallback(async (sectionId: string, itemId: string, data: { thumbnail?: string | File; title: string; url: string; isEmail: boolean; content?: string }) => {
     try {
       let imageURL: string | undefined;
       
@@ -707,7 +709,7 @@ export default function MyPage() {
         name: data.title,
         url: data.url,
         imageURL: imageURL || '',
-        content: '',
+        content: data.content ?? '',
         isEmail: data.isEmail,
       });
       
@@ -724,6 +726,7 @@ export default function MyPage() {
                       imageUrl: imageURL || item.imageUrl,
                     url: data.url,
                     isEmail: data.isEmail,
+                    ...(data.content !== undefined && { content: data.content }),
                   }
                 : item
             ),
@@ -1775,10 +1778,10 @@ export default function MyPage() {
     }
   }, [bioId, updateBio, uploadFile, getCurrentUser, showToast]);
 
-  // Transform social links for MobilePreview component
+  // Transform social links for MobilePreview: mono (black circle + white icon) from single socialIcons file
   const transformedSocialLinks = socialLinks.map(({ id, ...link }) => ({
     ...link,
-    icon: link.icon || getSocialIcon(link.platform, 16, '#FFFFFF'),
+    icon: getSocialIconMono(link.platform, 16),
   }));
 
   // Show full-screen loader ONLY on initial page load.

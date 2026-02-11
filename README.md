@@ -2,6 +2,18 @@
 
 A modern monorepo setup with Turborepo, Yarn workspaces, and a comprehensive design system.
 
+## 📚 Documentation
+
+Comprehensive documentation is available in the [`docs/`](./docs/) directory:
+
+- **[Documentation Index](./docs/README.md)** - Overview and navigation
+- **[Getting Started Guide](./docs/GETTING_STARTED.md)** - Setup and installation
+- **[Client Portal Documentation](./docs/CLIENT.md)** - Client app features and usage
+- **[Agency Portal Documentation](./docs/AGENCY.md)** - Agency app features and usage
+- **[Admin Portal Documentation](./docs/ADMIN.md)** - Admin app features and usage
+- **[Design System Documentation](./docs/DESIGN_SYSTEM.md)** - Shared components and theming
+- **[Architecture Documentation](./docs/ARCHITECTURE.md)** - System architecture and patterns
+
 ## 🏗️ Architecture
 
 ### Design System Layer

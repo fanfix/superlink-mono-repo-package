@@ -8,6 +8,8 @@ export interface ContentItem {
   countdownSeconds?: string;
   url?: string;
   isEmail?: boolean;
+  /** Item-level content (e.g. for parallel section links), from API */
+  content?: string;
 }
 
 export interface CustomSection {
@@ -17,6 +19,8 @@ export interface CustomSection {
   useContentImageAsBackground: boolean;
   items: ContentItem[];
   sectionType?: 'links' | 'embeds' | 'email' | 'text' | 'unlock_content' | 'brand_kit';
+  /** Section-level content (e.g. for parallel-row), saved to DB when provided */
+  sectionContent?: string;
 }
 
 export interface TextSection {
@@ -74,4 +78,12 @@ export interface MobilePreviewProps {
   engagements?: Engagement[];
   pricing?: Pricing[];
   customButtons?: CustomButton[];
+  /** Show "Like this profile? Replicate it." CTA (e.g. on public profile view) */
+  showReplicateCta?: boolean;
+  /** Called when user clicks "Replicate this profile" (e.g. show login/replication modals) */
+  onReplicateClick?: () => void;
+  /** Show "Create own page" link below CTA; when set, clicking navigates via onCreateOwnPageClick */
+  showCreateOwnPageLink?: boolean;
+  /** Called when user clicks "Create own page" (e.g. navigate to signup) */
+  onCreateOwnPageClick?: () => void;
 }

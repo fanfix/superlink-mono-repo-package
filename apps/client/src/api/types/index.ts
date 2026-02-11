@@ -338,6 +338,16 @@ export interface CurrentUser {
   __typename?: string;
 }
 
+/** Public user profile (by usernameOrId) for public profile page */
+export interface PublicUser {
+  id: string;
+  name?: string | null;
+  isSuperLockedEnabled?: boolean;
+  connectedAgency?: ConnectedAgency | null;
+  bio?: Bio | null;
+  __typename?: string;
+}
+
 export interface UpdateProfileInput {
   bioId: string;
   name?: string;

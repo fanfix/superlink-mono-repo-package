@@ -29,17 +29,28 @@ export const styles = {
       
       const colors: Record<string, string> = {
         facebook: '#1877F2',
-        twitter: '#000000',
+        twitter: '#1DA1F2',
         x: '#000000',
+        instagram: '#E4405F',
         youtube: '#FF0000',
-        tiktok: '#000000',
-        linkedin: '#0077B5',
+        tiktok: '#EE1D52',
+        linkedin: '#0A66C2',
         snapchat: '#FFFC00',
         pinterest: '#BD081C',
         discord: '#5865F2',
         twitch: '#9146FF',
         reddit: '#FF4500',
         telegram: '#0088cc',
+        whatsapp: '#25D366',
+        behance: '#1769FF',
+        spotify: '#1DB954',
+        onlyfans: '#00AFF0',
+        cashapp: '#00D632',
+        paypal: '#003087',
+        shopify: '#96BF48',
+        threads: '#000000',
+        fanfix: '#111827',
+        email: '#6B7280',
       };
       
       return {

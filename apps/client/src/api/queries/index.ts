@@ -225,6 +225,156 @@ export const CHANGE_PASSWORD_MUTATION = `
   }
 `;
 
+// ==================== Public User by Username (for public profile page) ====================
+export const USER_QUERY = `
+  fragment BiosPublic on BiosEntity {
+    id
+    username
+    pageName
+    pageFont
+    imageURL
+    bannerImageURL
+    introMessage
+    perMessageCost
+    allowMessaging
+    allowSMS
+    allowTipping
+    allowAgencyBranding
+    followerCount
+    buttonText
+    verificationStatus
+    theme
+    backgroundColor
+    layoutForAvatarAndBio
+    textColor
+    titleColor
+    backgroundSecondaryColor
+    backgroundImageURL
+    backgroundImageOpacity
+    backgroundImageBlur
+    socialLinks {
+      id
+      order
+      name
+      url
+      __typename
+    }
+    customButtons {
+      id
+      order
+      name
+      url
+      isFavorite
+      isEmail
+      __typename
+    }
+    customSections {
+      id
+      order
+      name
+      isRow
+      isEmbed
+      listMode
+      rowMode
+      sectionType
+      unlockContentOriginalImageURL
+      unlockContentBlurredImageURL
+      unlockContentPrice
+      unlockContentTitle
+      unlockContentTitleColor
+      unlockContentBeforeDiscountPrice
+      editedAt
+      unlockContents {
+        id
+        title
+        price
+        description
+        beforeDiscountPrice
+        titleColor
+        unlockContentOriginalURL
+        unlockContentBlurredURL
+        contentType
+        order
+        cropWidth
+        cropHeight
+        cropX
+        cropY
+        countdownStart
+        percentDiscount
+        editedAt
+        icon
+        __typename
+      }
+      videoContents {
+        id
+        title
+        price
+        beforeDiscountPrice
+        titleColor
+        originalVideoUrl
+        previewVideoUrl
+        cropWidth
+        cropHeight
+        cropX
+        cropY
+        __typename
+      }
+      brandKit {
+        id
+        bannerImageURL
+        description
+        engagements {
+          id
+          count
+          title
+          __typename
+        }
+        kitItems {
+          id
+          price
+          title
+          __typename
+        }
+        __typename
+      }
+      sectionLinks {
+        id
+        order
+        name
+        size
+        imageURL
+        url
+        content
+        isEmail
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+
+  query User($usernameOrId: String!) {
+    user(usernameOrId: $usernameOrId) {
+      id
+      name
+      isSuperLockedEnabled
+      bio {
+        ...BiosPublic
+        __typename
+      }
+      connectedAgency {
+        id
+        brandColor
+        name
+        imageURL
+        displayAgencyBranding
+        __typename
+      }
+      __typename
+    }
+  }
+`;
+
 // ==================== Profile Queries ====================
 export const GET_PROFILE_QUERY = `
   query GetProfile($username: String!) {

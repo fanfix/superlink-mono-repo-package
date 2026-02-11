@@ -251,21 +251,30 @@ export const styles = {
     margin: '-110px auto var(--padding-lg) auto',
   } as SxProps<Theme>,
 
+  // Mobile preview: black circle + white icon (mono form)
   socialIconCircle: {
     width: 'var(--width-mypage-icon-medium)',
     height: 'var(--height-mypage-icon-medium)',
     borderRadius: '50%',
-    backgroundColor: 'var(--color-black-overlay-70)',
+    backgroundColor: '#000000',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
     flexShrink: 0,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+    textDecoration: 'none',
+    color: 'var(--color-white)',
     '& svg': {
       fontSize: 'var(--size-icon-md)',
       width: 'var(--size-icon-md)',
       height: 'var(--size-icon-md)',
       color: 'var(--color-white)',
+      fill: 'var(--color-white)',
+    },
+    '& .MuiSvgIcon-root': {
+      color: 'var(--color-white)',
+      fill: 'var(--color-white)',
     },
   } as SxProps<Theme>,
 
@@ -317,6 +326,80 @@ export const styles = {
     paddingTop: 0,
     position: 'relative' as const,
     zIndex: 1,
+  } as SxProps<Theme>,
+
+  // Replicate profile CTA bar (light gray bar, left text, right button)
+  replicateCtaContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 'var(--padding-md)',
+    padding: 'var(--padding-lg) var(--padding-xl)',
+    margin: '0 var(--padding-lg) var(--padding-md)',
+    backgroundColor: 'rgb(240, 240, 240)',
+    borderRadius: 'var(--border-radius-lg)',
+    position: 'relative' as const,
+    zIndex: 2,
+  } as SxProps<Theme>,
+  replicateCtaLabels: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: 2,
+  } as SxProps<Theme>,
+  replicateCtaLine1: {
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 'var(--font-weight-medium)',
+    color: 'var(--color-gray-600)',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.02em',
+    lineHeight: 1.2,
+  } as SxProps<Theme>,
+  replicateCtaLine2: {
+    fontSize: 'var(--font-size-md)',
+    fontWeight: 'var(--font-weight-bold)',
+    color: 'var(--color-gray-800)',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.02em',
+    lineHeight: 1.2,
+  } as SxProps<Theme>,
+  replicateCtaButton: {
+    flexShrink: 0,
+    padding: 'var(--padding-sm) var(--padding-lg)',
+    backgroundColor: 'rgb(80, 80, 80)',
+    color: 'var(--color-white)',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 'var(--font-weight-semibold)',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.02em',
+    borderRadius: 'var(--border-radius-md)',
+    border: 'none',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+    '&:hover': {
+      backgroundColor: 'rgb(60, 60, 60)',
+    },
+    '&:active': {
+      transform: 'scale(0.98)',
+    },
+  } as SxProps<Theme>,
+
+  createOwnPageLinkWrap: {
+    display: 'flex',
+    justifyContent: 'center',
+    padding: '0 var(--padding-lg) var(--padding-md)',
+  } as SxProps<Theme>,
+  createOwnPageLink: {
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    cursor: 'pointer',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 'var(--font-weight-medium)',
+    color: 'var(--color-gray-700)',
+    textDecoration: 'underline',
+    '&:hover': {
+      color: 'var(--color-gray-900)',
+    },
   } as SxProps<Theme>,
 
   footer: {
