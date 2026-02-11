@@ -924,6 +924,18 @@ export const DELETE_ENGAGEMENT_MUTATION = `
   }
 `;
 
+export const REORDER_ENGAGEMENTS_MUTATION = `
+  mutation ReorderEngagements($engagementsIds: [String!]!) {
+    reorderEngagements(engagementsIds: $engagementsIds) {
+      id
+      count
+      title
+      order
+      __typename
+    }
+  }
+`;
+
 export const CREATE_BRAND_KIT_ITEM_MUTATION = `
   mutation CreateBrandKitItem($brandKitId: String!, $createKitItemsDto: CreateKitItemsDto!) {
     createBrandKitItem(
@@ -958,6 +970,18 @@ export const DELETE_BRAND_KIT_ITEM_MUTATION = `
   mutation DeleteBrandKitItem($brandKitItemId: String!) {
     deleteBrandKitItem(brandKitItemId: $brandKitItemId) {
       id
+      __typename
+    }
+  }
+`;
+
+export const REORDER_BRAND_KIT_ITEMS_MUTATION = `
+  mutation ReorderBrandKitItems($brandKitItemsIds: [String!]!) {
+    reorderBrandKitItems(brandKitItemsIds: $brandKitItemsIds) {
+      id
+      order
+      title
+      price
       __typename
     }
   }

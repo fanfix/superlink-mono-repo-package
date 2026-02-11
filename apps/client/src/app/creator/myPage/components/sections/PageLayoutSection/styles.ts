@@ -4,9 +4,8 @@ import { CSSProperties } from 'react';
 export const styles = {
   layoutsContainer: {
     display: 'flex',
-    
     gap: 'var(--padding-lg)',
-    justifyContent: {xs: 'center', md: 'flex-start'},
+    justifyContent: 'center',
     alignItems: 'center',
     flexWrap: 'wrap' as const,
   } as SxProps<Theme>,

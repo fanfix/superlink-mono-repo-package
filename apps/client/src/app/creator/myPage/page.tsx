@@ -6,8 +6,6 @@ import SocialLinksSection from './components/sections/SocialLinksSection';
 import CustomButtonsSection from './components/sections/CustomButtonsSection';
 import { SortableCustomSectionsEmbedsSection } from './components/sections/CustomSectionsEmbedsSection/SortableCustomSectionsEmbedsSection';
 import { SortableBrandKitSection } from './components/sections/BrandKitSection/SortableBrandKitSection';
-import EngagementsSection from './components/sections/EngagementsSection';
-import PricingPackagesSection from './components/sections/PricingPackagesSection';
 import MobilePreview from './components/MobilePreview';
 import type { ContentItem, CustomSection, TextSection, BrandKitItem, Engagement, Pricing } from './components/MobilePreview/types';
 import type { UploadContentData } from './components/UploadContentModal/types';
@@ -54,6 +52,7 @@ import {
   useDeleteBrandKitItem,
 } from '../../../hooks';
 import { useUploadFile } from '../../../hooks';
+import { reorderEngagementsApi, reorderBrandKitItemsApi } from '../../../api/services/brandKitService';
 import { Toast } from '@superline/design-system';
 import {
   DndContext,
@@ -76,7 +75,7 @@ import type { SocialLink, PageLayout } from './types/page.types';
 import { DEFAULT_PAGE_STATE } from './types/page.types';
 
 export default function MyPage() {
-  const { currentUser } = useAuth();
+  const { currentUser, refreshAuth } = useAuth();
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [bioId, setBioId] = useState<string | null>(null);
   
@@ -135,9 +134,13 @@ export default function MyPage() {
   const [coverImage, setCoverImage] = useState<string>(DEFAULT_PAGE_STATE.coverImage);
   const [profileImage, setProfileImage] = useState<string>(DEFAULT_PAGE_STATE.profileImage);
   const [backgroundImage, setBackgroundImage] = useState<string>(DEFAULT_PAGE_STATE.backgroundImage);
+  const [backgroundImageOpacity, setBackgroundImageOpacity] = useState<number>(70);
+  const [backgroundImageBlur, setBackgroundImageBlur] = useState<number>(0);
+  const [backgroundImageAppearance, setBackgroundImageAppearance] = useState<'light' | 'dark'>('light');
 
   // Styling state
   const [selectedFont, setSelectedFont] = useState<string>(DEFAULT_PAGE_STATE.selectedFont);
+  const [selectedTitleColor, setSelectedTitleColor] = useState<string>(DEFAULT_PAGE_STATE.selectedTextColor);
   const [selectedTextColor, setSelectedTextColor] = useState<string>(DEFAULT_PAGE_STATE.selectedTextColor);
   const [selectedLayout, setSelectedLayout] = useState<PageLayout>(DEFAULT_PAGE_STATE.selectedLayout);
   const [backgroundColor, setBackgroundColor] = useState<string>(DEFAULT_PAGE_STATE.backgroundColor);
@@ -202,9 +205,17 @@ export default function MyPage() {
           if (bio.bannerImageURL) setCoverImage(bio.bannerImageURL);
           if (bio.imageURL) setProfileImage(bio.imageURL);
           if (bio.backgroundImageURL) setBackgroundImage(bio.backgroundImageURL);
-          
+          if (bio.backgroundImageOpacity != null) setBackgroundImageOpacity(bio.backgroundImageOpacity);
+          if (bio.backgroundImageBlur != null) setBackgroundImageBlur(bio.backgroundImageBlur);
+
           if (bio.pageFont) setSelectedFont(bio.pageFont);
-          if (bio.textColor) setSelectedTextColor(bio.textColor);
+          // Title color (page name) and text color (intro) from API – dono alag set karo
+          const titleColorVal = bio.titleColor != null ? String(bio.titleColor).trim() : '';
+          const textColorVal = bio.textColor != null ? String(bio.textColor).trim() : '';
+          if (titleColorVal) setSelectedTitleColor(titleColorVal);
+          if (textColorVal) setSelectedTextColor(textColorVal);
+          if (titleColorVal && !textColorVal) setSelectedTextColor(titleColorVal);
+          if (textColorVal && !titleColorVal) setSelectedTitleColor(textColorVal);
           if (bio.layoutForAvatarAndBio) {
             // Map API format to PageLayout: vertical -> layout1, horizontal -> layout2
             const mappedLayout = bio.layoutForAvatarAndBio === 'vertical' ? 'layout1' : 'layout2';
@@ -288,33 +299,33 @@ export default function MyPage() {
               const brandKit = brandKitSection.brandKit;
               // Store brandKitId for creating engagements and kit items
               setBrandKitId(brandKit.id);
-              
-              if (brandKit.bannerImageURL) {
-                setBrandKitItems([
-                  {
-                    id: brandKit.id,
-                    thumbnailUrl: brandKit.bannerImageURL,
-                    description: brandKit.description,
-                  },
-                ]);
-              }
-              
-              // Load engagements from brand kit
+
+              // Always set brand kit items when brandKit exists (so section + engagements/pricing show)
+              const bannerUrl = brandKit.bannerImageURL ?? undefined;
+              setBrandKitItems([
+                {
+                  id: brandKit.id,
+                  ...(bannerUrl && { thumbnailUrl: bannerUrl }),
+                  description: brandKit.description ?? '',
+                },
+              ]);
+
+              // Load engagements from brand kit (ensure count is string for UI)
               if (brandKit.engagements && brandKit.engagements.length > 0) {
                 const transformedEngagements = brandKit.engagements.map((eng) => ({
                   id: eng.id,
-                  title: eng.title,
-                  count: eng.count,
+                  title: eng.title ?? '',
+                  count: typeof eng.count === 'number' ? String(eng.count) : (eng.count ?? ''),
                 }));
                 setEngagements(transformedEngagements);
               }
-              
+
               // Load pricing (kit items) from brand kit
               if (brandKit.kitItems && brandKit.kitItems.length > 0) {
                 const transformedPricing = brandKit.kitItems.map((item) => ({
                   id: item.id,
-                  title: item.title,
-                  price: (item.price / 100).toString(), // Convert from cents to dollars
+                  title: item.title ?? '',
+                  price: (Number(item.price) / 100).toString(), // Convert from cents to dollars
                 }));
                 setPricing(transformedPricing);
               }
@@ -1082,24 +1093,27 @@ export default function MyPage() {
     }
   }, [deleteBrandKit, showToast]);
 
-  const handleReorderBrandKit = useCallback((itemIds: string[]) => {
-    setBrandKitItems((prev) => {
-      const itemMap = new Map(prev.map((item) => [item.id, item]));
-      const reordered: BrandKitItem[] = [];
-      for (const id of itemIds) {
-        const item = itemMap.get(id);
-        if (item) {
-          reordered.push(item);
+  const handleReorderBrandKit = useCallback(async (itemIds: string[]) => {
+    if (itemIds.length === 0) return;
+    try {
+      await reorderBrandKitItemsApi(itemIds);
+      setBrandKitItems((prev) => {
+        const itemMap = new Map(prev.map((item) => [item.id, item]));
+        const reordered: BrandKitItem[] = [];
+        for (const id of itemIds) {
+          const item = itemMap.get(id);
+          if (item) reordered.push(item);
         }
-      }
-      for (const item of prev) {
-        if (!itemIds.includes(item.id)) {
-          reordered.push(item);
+        for (const item of prev) {
+          if (!itemIds.includes(item.id)) reordered.push(item);
         }
-      }
-      return reordered;
-    });
-  }, []);
+        return reordered;
+      });
+      await refreshAuth(true);
+    } catch {
+      showToast('Failed to reorder brand kit items', 'error');
+    }
+  }, [showToast, refreshAuth]);
 
   // Engagement handlers with API
   const handleAddEngagement = useCallback(async (data: { title: string; count: string }) => {
@@ -1151,24 +1165,28 @@ export default function MyPage() {
     }
   }, [deleteEngagement, showToast]);
 
-  const handleReorderEngagements = useCallback((itemIds: string[]) => {
-    setEngagements((prev) => {
-      const itemMap = new Map(prev.map((item) => [item.id, item]));
-      const reordered: Engagement[] = [];
-      for (const id of itemIds) {
-        const item = itemMap.get(id);
-        if (item) {
-          reordered.push(item);
+  const handleReorderEngagements = useCallback(async (itemIds: string[]) => {
+    if (itemIds.length === 0) return;
+    try {
+      await reorderEngagementsApi(itemIds);
+      setEngagements((prev) => {
+        const itemMap = new Map(prev.map((item) => [item.id, item]));
+        const reordered: Engagement[] = [];
+        for (const id of itemIds) {
+          const item = itemMap.get(id);
+          if (item) reordered.push(item);
         }
-      }
-      for (const item of prev) {
-        if (!itemIds.includes(item.id)) {
-          reordered.push(item);
+        for (const item of prev) {
+          if (!itemIds.includes(item.id)) reordered.push(item);
         }
-      }
-      return reordered;
-    });
-  }, []);
+        return reordered;
+      });
+      // Refetch current user so mobile preview / context has latest data
+      await refreshAuth(true);
+    } catch {
+      showToast('Failed to reorder engagements', 'error');
+    }
+  }, [showToast, refreshAuth]);
 
   // Pricing handlers with API (using BrandKitItem APIs)
   const handleAddPricing = useCallback(async (data: { title: string; price: string }) => {
@@ -1220,24 +1238,27 @@ export default function MyPage() {
     }
   }, [deleteBrandKitItem, showToast]);
 
-  const handleReorderPricing = useCallback((itemIds: string[]) => {
-    setPricing((prev) => {
-      const itemMap = new Map(prev.map((item) => [item.id, item]));
-      const reordered: Pricing[] = [];
-      for (const id of itemIds) {
-        const item = itemMap.get(id);
-        if (item) {
-          reordered.push(item);
+  const handleReorderPricing = useCallback(async (itemIds: string[]) => {
+    if (itemIds.length === 0) return;
+    try {
+      await reorderBrandKitItemsApi(itemIds);
+      setPricing((prev) => {
+        const itemMap = new Map(prev.map((item) => [item.id, item]));
+        const reordered: Pricing[] = [];
+        for (const id of itemIds) {
+          const item = itemMap.get(id);
+          if (item) reordered.push(item);
         }
-      }
-      for (const item of prev) {
-        if (!itemIds.includes(item.id)) {
-          reordered.push(item);
+        for (const item of prev) {
+          if (!itemIds.includes(item.id)) reordered.push(item);
         }
-      }
-      return reordered;
-    });
-  }, []);
+        return reordered;
+      });
+      await refreshAuth(true);
+    } catch {
+      showToast('Failed to reorder pricing', 'error');
+    }
+  }, [showToast, refreshAuth]);
 
   // Handlers for custom buttons with API
   const handleAddCustomButton = useCallback(async (data: { buttonText: string; type: 'email' | 'url'; value: string }) => {
@@ -1327,12 +1348,10 @@ export default function MyPage() {
     }
   }, [removeCustomButton, getCurrentUser, showToast]);
 
-  // Section order state for drag and drop
+  // Section order state for drag and drop (Engagements & Pricing are children inside Brand Kit)
   const [sectionOrder, setSectionOrder] = useState<string[]>([
     'custom-sections-embeds',
     'brand-kit',
-    'engagements',
-    'pricing-packages',
   ]);
 
   // Drag and drop sensors
@@ -1706,9 +1725,10 @@ export default function MyPage() {
 
   const handleTextColorChange = useCallback(async (color: string) => {
     setSelectedTextColor(color);
+    setSelectedTitleColor(color);
     if (bioId) {
       try {
-        await updateBio(bioId, { textColor: color });
+        await updateBio(bioId, { textColor: color, titleColor: color });
         showToast('Text color updated successfully', 'success');
       } catch (error) {
         showToast('Failed to update text color', 'error');
@@ -1742,41 +1762,61 @@ export default function MyPage() {
     }
   }, [bioId, updateBio, showToast]);
 
-  const handleBackgroundImageChange = useCallback(async (fileOrUrl: File | string) => {
+  const handleBackgroundImageChange = useCallback(async (
+    fileOrUrl: File | string,
+    options?: { opacity: number; blur: number; appearance: 'light' | 'dark' }
+  ) => {
     try {
       let imageUrl: string;
-      
-      // If it's a File object, upload it first
+
+      // If it's a File object, upload it first (no direct API hit until user saves from modal)
       if (fileOrUrl instanceof File) {
         const uploadResponse = await uploadFile(fileOrUrl);
         if (!uploadResponse?.imageURL) {
           throw new Error('Failed to upload background image');
         }
         imageUrl = uploadResponse.imageURL;
+        if (options) {
+          setBackgroundImageOpacity(options.opacity);
+          setBackgroundImageBlur(options.blur);
+          setBackgroundImageAppearance(options.appearance);
+        }
       } else {
-        // If it's already a URL string (for removal, pass empty string)
         imageUrl = fileOrUrl;
+        if (!imageUrl) {
+          setBackgroundImageOpacity(70);
+          setBackgroundImageBlur(0);
+          setBackgroundImageAppearance('light');
+        }
       }
-      
-      // Update state optimistically
+
       setBackgroundImage(imageUrl);
-      
-      // Update bio with the uploaded image URL
+
       if (bioId && imageUrl) {
-        await updateBio(bioId, { backgroundImageURL: imageUrl });
+        const updatePayload: { backgroundImageURL: string; backgroundImageOpacity?: number; backgroundImageBlur?: number } = { backgroundImageURL: imageUrl };
+        if (options) {
+          updatePayload.backgroundImageOpacity = options.opacity;
+          updatePayload.backgroundImageBlur = options.blur;
+        }
+        await updateBio(bioId, updatePayload);
         showToast('Background image updated successfully', 'success');
       } else if (bioId && !imageUrl) {
-        // Remove image
-        await updateBio(bioId, { backgroundImageURL: '' });
+        await updateBio(bioId, {
+          backgroundImageURL: '',
+          backgroundImageOpacity: 70,
+          backgroundImageBlur: 0,
+        });
         showToast('Background image removed successfully', 'success');
       }
     } catch (error) {
       showToast('Failed to update background image', 'error');
-      // Revert state on error - reload from API
       if (bioId) {
         try {
           const currentUser = await getCurrentUser();
-          if (currentUser?.bio?.backgroundImageURL) setBackgroundImage(currentUser.bio.backgroundImageURL);
+          const bio = currentUser?.bio;
+          if (bio?.backgroundImageURL) setBackgroundImage(bio.backgroundImageURL);
+          if (bio?.backgroundImageOpacity != null) setBackgroundImageOpacity(bio.backgroundImageOpacity);
+          if (bio?.backgroundImageBlur != null) setBackgroundImageBlur(bio.backgroundImageBlur);
         } catch {}
       }
     }
@@ -1873,38 +1913,6 @@ export default function MyPage() {
                       />
                     );
                   }
-                  if (sectionId === 'engagements') {
-                    // Only show engagements section if brandKitItems has data
-                    if (brandKitItems.length === 0) {
-                      return null;
-                    }
-                    return (
-                      <EngagementsSection
-                        key={sectionId}
-                        engagements={engagements}
-                        onAddEngagement={handleAddEngagement}
-                        onUpdateEngagement={handleUpdateEngagement}
-                        onDeleteEngagement={handleDeleteEngagement}
-                        onReorderEngagements={handleReorderEngagements}
-                      />
-                    );
-                  }
-                  if (sectionId === 'pricing-packages') {
-                    // Only show pricing packages section if brandKitItems has data
-                    if (brandKitItems.length === 0) {
-                      return null;
-                    }
-                    return (
-                      <PricingPackagesSection
-                        key={sectionId}
-                        pricing={pricing}
-                        onAddPricing={handleAddPricing}
-                        onUpdatePricing={handleUpdatePricing}
-                        onDeletePricing={handleDeletePricing}
-                        onReorderPricing={handleReorderPricing}
-                      />
-                    );
-                  }
                   if (sectionId === 'brand-kit') {
                     return (
                       <SortableBrandKitSection
@@ -1914,6 +1922,16 @@ export default function MyPage() {
                         onUpdateBrandKit={handleUpdateBrandKit}
                         onDeleteBrandKit={handleDeleteBrandKit}
                         onReorderBrandKit={handleReorderBrandKit}
+                        engagements={engagements}
+                        onAddEngagement={handleAddEngagement}
+                        onUpdateEngagement={handleUpdateEngagement}
+                        onDeleteEngagement={handleDeleteEngagement}
+                        onReorderEngagements={handleReorderEngagements}
+                        pricing={pricing}
+                        onAddPricing={handleAddPricing}
+                        onUpdatePricing={handleUpdatePricing}
+                        onDeletePricing={handleDeletePricing}
+                        onReorderPricing={handleReorderPricing}
                       />
                     );
                   }
@@ -1933,7 +1951,11 @@ export default function MyPage() {
             socialLinks={transformedSocialLinks}
             backgroundColor={backgroundColor}
             backgroundImage={backgroundImage}
+            backgroundImageOpacity={backgroundImageOpacity}
+            backgroundImageBlur={backgroundImageBlur}
+            backgroundImageAppearance={backgroundImageAppearance}
             selectedFont={selectedFont}
+            selectedTitleColor={selectedTitleColor}
             selectedTextColor={selectedTextColor}
             selectedLayout={selectedLayout}
             contentItems={contentItems}

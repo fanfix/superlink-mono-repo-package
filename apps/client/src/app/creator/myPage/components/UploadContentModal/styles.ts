@@ -250,8 +250,17 @@ export const styles = {
   zoomSlider: {
     color: 'var(--color-mypage-text-dark)',
     '& .MuiSlider-thumb': {
-      width: 'var(--height-onboarding-slider-thumb)',
-      height: 'var(--height-onboarding-slider-thumb)',
+      width: 20,
+      height: 20,
+      backgroundColor: '#fff',
+      border: '2px solid #181818',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+      '&:hover, &.Mui-focusVisible': {
+        boxShadow: '0 0 0 4px rgba(24,24,24,0.2)',
+      },
+    },
+    '& .MuiSlider-rail': {
+      opacity: 0.4,
     },
     '& .MuiSlider-root': {
       overflow: 'visible',

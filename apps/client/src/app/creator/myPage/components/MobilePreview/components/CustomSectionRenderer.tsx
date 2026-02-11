@@ -12,6 +12,12 @@ interface CustomSectionRendererProps {
   section: CustomSection;
   /** When true (e.g. public username page), use compact grid (3 cols, smaller gap/size). */
   compactLayout?: boolean;
+  /** Text color for section heading (auto from page background). */
+  textColor?: string;
+  /** When true, cards (list, parallel) use dark background + white text. */
+  isDarkBg?: boolean;
+  /** When true (black page bg), section cards use gray background + black text. */
+  isBlackBg?: boolean;
 }
 
 const LINK_ICON_COLOR = 'var(--color-black)';
@@ -54,7 +60,11 @@ function getNoThumbnailPlaceholder(item: { url?: string; isEmail?: boolean }, ic
 const EMBED_SLIDER_ITEM_WIDTH = 280;
 const EMBED_SLIDER_GAP = 16;
 
-export function CustomSectionRenderer({ section, compactLayout }: CustomSectionRendererProps) {
+const defaultTextColor = 'var(--color-black)';
+/** Text inside cards: inherits from card (dark card → white, light card → black). */
+const cardTextInherit = { color: 'inherit' as const };
+
+export function CustomSectionRenderer({ section, compactLayout, textColor = defaultTextColor, isDarkBg = false, isBlackBg = false }: CustomSectionRendererProps) {
   const embedSliderRef = useRef<HTMLDivElement>(null);
 
   const handleLinkClick = (item: { url?: string; isEmail?: boolean }) => {
@@ -93,7 +103,7 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
         return (
           <Box sx={styles.customSectionList}>
             {section.items.map((item) => (
-              <Box key={item.id} sx={styles.customSectionListItem} onClick={() => item.url && handleLinkClick(item)} role={item.url ? 'link' : undefined}>
+              <Box key={item.id} sx={styles.customSectionListItemThemed(isDarkBg, isBlackBg)} onClick={() => item.url && handleLinkClick(item)} role={item.url ? 'link' : undefined}>
                 {item.imageUrl ? (
                   <>
                     <Box sx={styles.customSectionListImageWrap}>
@@ -111,20 +121,20 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
                       </Box>
                     </Box>
                     <Box sx={styles.customSectionListContent}>
-                      <Typography sx={styles.customSectionItemTitle}>{item.title}</Typography>
+                      <Typography sx={[styles.customSectionItemTitle, cardTextInherit]}>{item.title}</Typography>
                     </Box>
                   </>
                 ) : (
-                  <Box sx={styles.customSectionListItemFallback}>
+                  <Box sx={styles.customSectionListItemFallbackThemed(isDarkBg, isBlackBg)}>
                     <Box sx={{ ...styles.customSectionListIcon, overflow: 'hidden', borderRadius: 'var(--border-radius-md)' }}>
                       {getNoThumbnailPlaceholder(item, 32)}
                     </Box>
                     <Box sx={styles.customSectionItemContent}>
-                      <Typography sx={styles.customSectionItemTitle}>{item.title}</Typography>
+                      <Typography sx={[styles.customSectionItemTitle, cardTextInherit]}>{item.title}</Typography>
                       {item.url ? (
-                        <Typography sx={styles.customSectionItemPrice}>{item.url}</Typography>
+                        <Typography sx={[styles.customSectionItemPrice, cardTextInherit]}>{item.url}</Typography>
                       ) : item.price ? (
-                        <Typography sx={styles.customSectionItemPrice}>${item.price}</Typography>
+                        <Typography sx={[styles.customSectionItemPrice, cardTextInherit]}>${item.price}</Typography>
                       ) : null}
                     </Box>
                   </Box>
@@ -142,7 +152,7 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
                 {item.imageUrl ? (
                   <Box sx={rowImageContainerStyles}>
                     <Box component="img" src={item.imageUrl} alt={item.title} sx={styles.customSectionRowImage} />
-                    <Typography sx={styles.customSectionRowTitleOverlay}>{item.title}</Typography>
+                    <Typography sx={[styles.customSectionRowTitleOverlay, { color: textColor }]}>{item.title}</Typography>
                     {item.url && (
                       <IconButton
                         onClick={(e) => { e.stopPropagation(); handleLinkClick(item); }}
@@ -156,7 +166,7 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
                 ) : (
                   <Box sx={rowImageContainerStyles}>
                     {getNoThumbnailPlaceholder(item, 40)}
-                    <Typography sx={styles.customSectionRowTitleOverlay}>{item.title}</Typography>
+                    <Typography sx={[styles.customSectionRowTitleOverlay, { color: textColor }]}>{item.title}</Typography>
                   </Box>
                 )}
               </Box>
@@ -181,7 +191,7 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
                 placement="top"
               >
                 <Box 
-                  sx={styles.customSectionParallelItem}
+                  sx={styles.customSectionParallelItemThemed(isDarkBg, isBlackBg)}
                   onClick={() => item.url && handleLinkClick(item)}
                 >
                   <Box sx={styles.parallelImageContainer}>
@@ -197,14 +207,14 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
                     </Box>
                   </Box>
                   <Box sx={styles.customSectionParallelContent}>
-                    <Typography sx={styles.customSectionParallelTitle}>{item.title}</Typography>
+                    <Typography sx={[styles.customSectionParallelTitle, cardTextInherit]}>{item.title}</Typography>
                     {item.content?.trim() ? (
-                      <Typography sx={{ ...styles.customSectionParallelUrl, whiteSpace: 'normal' }}>{item.content.trim()}</Typography>
+                      <Typography sx={{ ...styles.customSectionParallelUrl, whiteSpace: 'normal', ...cardTextInherit, opacity: 0.9 }}>{item.content.trim()}</Typography>
                     ) : null}
                     {item.url ? (
-                      <Typography sx={styles.customSectionParallelUrl}>{item.url}</Typography>
+                      <Typography sx={[styles.customSectionParallelUrl, cardTextInherit]}>{item.url}</Typography>
                     ) : item.price ? (
-                      <Typography sx={styles.customSectionParallelUrl}>${item.price}</Typography>
+                      <Typography sx={[styles.customSectionParallelUrl, cardTextInherit]}>${item.price}</Typography>
                     ) : null}
                   </Box>
                 </Box>
@@ -225,8 +235,8 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
 
     if (section.layout === 'list' || section.layout === 'parallel-row') {
       return (
-        <Box sx={styles.customSection}>
-          <Typography sx={styles.customSectionName}>{section.name}</Typography>
+        <Box sx={[styles.customSection, { color: textColor }]}>
+          <Typography sx={[styles.customSectionName, { color: textColor }]}>{section.name}</Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {embedItems.map((item) => {
               const name = getEmbedPlatform(item.url!) || 'YouTube';
@@ -252,7 +262,7 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
                     placement="top"
                   >
                     <Box
-                      sx={styles.customSectionParallelItem}
+                      sx={styles.customSectionParallelItemThemed(isDarkBg, isBlackBg)}
                       onClick={() => item.url && handleLinkClick(item)}
                     >
                       <Box sx={styles.parallelImageContainer}>
@@ -268,14 +278,14 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
                         </Box>
                       </Box>
                       <Box sx={styles.customSectionParallelContent}>
-                        <Typography sx={styles.customSectionParallelTitle}>{item.title}</Typography>
+                        <Typography sx={[styles.customSectionParallelTitle, cardTextInherit]}>{item.title}</Typography>
                         {item.content?.trim() ? (
-                          <Typography sx={{ ...styles.customSectionParallelUrl, whiteSpace: 'normal' }}>{item.content.trim()}</Typography>
+                          <Typography sx={{ ...styles.customSectionParallelUrl, whiteSpace: 'normal', ...cardTextInherit, opacity: 0.9 }}>{item.content.trim()}</Typography>
                         ) : null}
                         {item.url ? (
-                          <Typography sx={styles.customSectionParallelUrl}>{item.url}</Typography>
+                          <Typography sx={[styles.customSectionParallelUrl, cardTextInherit]}>{item.url}</Typography>
                         ) : item.price ? (
-                          <Typography sx={styles.customSectionParallelUrl}>${item.price}</Typography>
+                          <Typography sx={[styles.customSectionParallelUrl, cardTextInherit]}>${item.price}</Typography>
                         ) : null}
                       </Box>
                     </Box>
@@ -286,7 +296,7 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
             {nonEmbedItems.length > 0 && section.layout === 'list' && (
               <Box sx={styles.customSectionList}>
                 {nonEmbedItems.map((item) => (
-                  <Box key={item.id} sx={styles.customSectionListItem} onClick={() => item.url && handleLinkClick(item)} role={item.url ? 'link' : undefined}>
+                  <Box key={item.id} sx={styles.customSectionListItemThemed(isDarkBg, isBlackBg)} onClick={() => item.url && handleLinkClick(item)} role={item.url ? 'link' : undefined}>
                     {item.imageUrl ? (
                       <>
                         <Box sx={styles.customSectionListImageWrap}>
@@ -304,20 +314,20 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
                           </Box>
                         </Box>
                         <Box sx={styles.customSectionListContent}>
-                          <Typography sx={styles.customSectionItemTitle}>{item.title}</Typography>
+                          <Typography sx={[styles.customSectionItemTitle, cardTextInherit]}>{item.title}</Typography>
                         </Box>
                       </>
                     ) : (
-                      <Box sx={styles.customSectionListItemFallback}>
+                      <Box sx={styles.customSectionListItemFallbackThemed(isDarkBg, isBlackBg)}>
                         <Box sx={{ ...styles.customSectionListIcon, overflow: 'hidden', borderRadius: 'var(--border-radius-md)' }}>
                           {getNoThumbnailPlaceholder(item, 32)}
                         </Box>
                         <Box sx={styles.customSectionItemContent}>
-                          <Typography sx={styles.customSectionItemTitle}>{item.title}</Typography>
+                          <Typography sx={[styles.customSectionItemTitle, cardTextInherit]}>{item.title}</Typography>
                           {item.url ? (
-                            <Typography sx={styles.customSectionItemPrice}>{item.url}</Typography>
+                            <Typography sx={[styles.customSectionItemPrice, cardTextInherit]}>{item.url}</Typography>
                           ) : item.price ? (
-                            <Typography sx={styles.customSectionItemPrice}>${item.price}</Typography>
+                            <Typography sx={[styles.customSectionItemPrice, cardTextInherit]}>${item.price}</Typography>
                           ) : null}
                         </Box>
                       </Box>
@@ -332,6 +342,7 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
     }
 
     if (section.layout === 'row' && embedItems.length > 0) {
+      const sectionNameSx = [styles.customSectionName, { color: textColor }];
       const scroll = (dir: 'left' | 'right') => {
         const el = embedSliderRef.current;
         if (!el) return;
@@ -339,9 +350,9 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
         el.scrollBy({ left: dir === 'left' ? -step : step, behavior: 'smooth' });
       };
       return (
-        <Box sx={styles.customSection}>
+        <Box sx={[styles.customSection, { color: textColor }]}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-            <Typography sx={styles.customSectionName}>{section.name}</Typography>
+            <Typography sx={sectionNameSx}>{section.name}</Typography>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
               <IconButton size="small" onClick={() => scroll('left')} sx={{ bgcolor: 'var(--color-gray-100)' }}>
                 <ChevronLeft />
@@ -397,7 +408,7 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
                     placement="top"
                   >
                     <Box
-                      sx={styles.customSectionParallelItem}
+                      sx={styles.customSectionParallelItemThemed(isDarkBg, isBlackBg)}
                       onClick={() => item.url && handleLinkClick(item)}
                     >
                       <Box sx={styles.parallelImageContainer}>
@@ -413,14 +424,14 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
                         </Box>
                       </Box>
                       <Box sx={styles.customSectionParallelContent}>
-                        <Typography sx={styles.customSectionParallelTitle}>{item.title}</Typography>
+                        <Typography sx={[styles.customSectionParallelTitle, cardTextInherit]}>{item.title}</Typography>
                         {item.content?.trim() ? (
-                          <Typography sx={{ ...styles.customSectionParallelUrl, whiteSpace: 'normal' }}>{item.content.trim()}</Typography>
+                          <Typography sx={{ ...styles.customSectionParallelUrl, whiteSpace: 'normal', ...cardTextInherit, opacity: 0.9 }}>{item.content.trim()}</Typography>
                         ) : null}
                         {item.url ? (
-                          <Typography sx={styles.customSectionParallelUrl}>{item.url}</Typography>
+                          <Typography sx={[styles.customSectionParallelUrl, cardTextInherit]}>{item.url}</Typography>
                         ) : item.price ? (
-                          <Typography sx={styles.customSectionParallelUrl}>${item.price}</Typography>
+                          <Typography sx={[styles.customSectionParallelUrl, cardTextInherit]}>${item.price}</Typography>
                         ) : null}
                       </Box>
                     </Box>
@@ -435,12 +446,12 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
 
     if (embedItems.length === 0 && nonEmbedItems.length > 0 && section.layout === 'row') {
       return (
-        <Box sx={styles.customSection}>
-          <Typography sx={styles.customSectionName}>{section.name}</Typography>
+        <Box sx={[styles.customSection, { color: textColor }]}>
+          <Typography sx={[styles.customSectionName, { color: textColor }]}>{section.name}</Typography>
           <Box sx={styles.customSectionParallel}>
             {nonEmbedItems.map((item) => (
               <Tooltip key={item.id} title={<Box><Box sx={styles.tooltipTitle}>{item.title}</Box>{item.url && <Box>{item.url}</Box>}</Box>} arrow placement="top">
-                <Box sx={styles.customSectionParallelItem} onClick={() => item.url && handleLinkClick(item)}>
+                <Box sx={styles.customSectionParallelItemThemed(isDarkBg, isBlackBg)} onClick={() => item.url && handleLinkClick(item)}>
                   <Box sx={styles.parallelImageContainer}>
                     {item.imageUrl ? (
                       <Box component="img" src={item.imageUrl} alt={item.title} sx={styles.customSectionParallelImage} />
@@ -452,9 +463,9 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
                     <Box sx={styles.customSectionParallelIcon}>{getLinkIcon(item, 16)}</Box>
                   </Box>
                   <Box sx={styles.customSectionParallelContent}>
-                    <Typography sx={styles.customSectionParallelTitle}>{item.title}</Typography>
-                    {item.content?.trim() ? <Typography sx={{ ...styles.customSectionParallelUrl, whiteSpace: 'normal' }}>{item.content.trim()}</Typography> : null}
-                    {item.url ? <Typography sx={styles.customSectionParallelUrl}>{item.url}</Typography> : item.price ? <Typography sx={styles.customSectionParallelUrl}>${item.price}</Typography> : null}
+                    <Typography sx={[styles.customSectionParallelTitle, cardTextInherit]}>{item.title}</Typography>
+                    {item.content?.trim() ? <Typography sx={{ ...styles.customSectionParallelUrl, whiteSpace: 'normal', ...cardTextInherit, opacity: 0.9 }}>{item.content.trim()}</Typography> : null}
+                    {item.url ? <Typography sx={[styles.customSectionParallelUrl, cardTextInherit]}>{item.url}</Typography> : item.price ? <Typography sx={[styles.customSectionParallelUrl, cardTextInherit]}>${item.price}</Typography> : null}
                   </Box>
                 </Box>
               </Tooltip>
@@ -466,8 +477,8 @@ export function CustomSectionRenderer({ section, compactLayout }: CustomSectionR
   }
 
   return (
-    <Box sx={styles.customSection}>
-      <Typography sx={styles.customSectionName}>{section.name}</Typography>
+    <Box sx={[styles.customSection, { color: textColor }]}>
+      <Typography sx={[styles.customSectionName, { color: textColor }]}>{section.name}</Typography>
       {renderLayout()}
     </Box>
   );

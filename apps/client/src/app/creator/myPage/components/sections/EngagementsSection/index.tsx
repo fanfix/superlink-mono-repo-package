@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Box, IconButton } from '@mui/material';
 import { Button, Typography } from '@superline/design-system';
-import { MoreVert as MoreVertIcon } from '@mui/icons-material';
+import { DragIndicator as DragIndicatorIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import CollapsibleSection from '../../shared/CollapsibleSection';
 import AddEngagementModal from '../../AddEngagementModal';
 import { styles } from './styles';
@@ -16,7 +16,7 @@ import {
   useSensors,
   DragEndEvent,
 } from '@dnd-kit/core';
-import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 interface Engagement {
@@ -63,7 +63,7 @@ function SortableEngagementItem({ item, onEdit }: SortableEngagementItemProps) {
           {...listeners}
           onClick={(e) => e.stopPropagation()}
         >
-          <MoreVertIcon sx={{ fontSize: '20px', color: 'var(--color-gray-500)' }} />
+          <DragIndicatorIcon sx={{ fontSize: '20px', color: 'var(--color-gray-500)' }} />
         </Box>
         <Typography sx={styles.engagementTitle}>{item.title}</Typography>
         <Typography sx={styles.engagementCount}>{item.count}</Typography>
@@ -94,12 +94,8 @@ export default function EngagementsSection({
   const [editingEngagement, setEditingEngagement] = useState<Engagement | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: (event, { context }) => {
-        return undefined;
-      },
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   const handleAdd = (data: { title: string; count: string }) => {

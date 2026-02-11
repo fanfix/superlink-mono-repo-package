@@ -141,8 +141,23 @@ export default function ImageCropModal({
     objectFit: 'contain' as const,
   };
 
-  const zoomSliderStyles = {
+  // Slider thumb clearly visible: white dot with dark border (no blend with track)
+  const sliderThumbVisibleStyles = {
     mt: 2,
+    color: '#181818',
+    '& .MuiSlider-thumb': {
+      width: 20,
+      height: 20,
+      backgroundColor: '#fff',
+      border: '2px solid #181818',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+      '&:hover, &.Mui-focusVisible': {
+        boxShadow: '0 0 0 4px rgba(24,24,24,0.2)',
+      },
+    },
+    '& .MuiSlider-rail': {
+      opacity: 0.4,
+    },
   };
 
   return (
@@ -202,7 +217,7 @@ export default function ImageCropModal({
           max={3}
           step={0.01}
           onChange={(_, value) => setZoom(value as number)}
-          sx={zoomSliderStyles}
+          sx={sliderThumbVisibleStyles}
         />
       </Box>
     </Modal>

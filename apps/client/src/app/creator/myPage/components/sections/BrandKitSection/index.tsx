@@ -6,6 +6,8 @@ import { Button, Typography } from '@superline/design-system';
 import { Edit as EditIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import CollapsibleSection from '../../shared/CollapsibleSection';
 import AddBrandKitModal from '../../AddBrandKitModal';
+import EngagementsSection from '../EngagementsSection';
+import PricingPackagesSection from '../PricingPackagesSection';
 import { styles } from './styles';
 import { BrandKitSectionProps } from './types';
 import {
@@ -66,12 +68,22 @@ function SortableBrandKitItem({ item, onEdit, onDelete }: { item: any; onEdit?: 
   );
 }
 
-export default function BrandKitSection({ 
-  brandKitItems = [], 
+export default function BrandKitSection({
+  brandKitItems = [],
   onAddBrandKit,
   onUpdateBrandKit,
   onDeleteBrandKit,
   onReorderBrandKit,
+  engagements = [],
+  onAddEngagement,
+  onUpdateEngagement,
+  onDeleteEngagement,
+  onReorderEngagements,
+  pricing = [],
+  onAddPricing,
+  onUpdatePricing,
+  onDeletePricing,
+  onReorderPricing,
 }: BrandKitSectionProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -118,10 +130,12 @@ export default function BrandKitSection({
     }
   };
 
+  const hasBrandKit = brandKitItems.length > 0;
+
   return (
     <>
       <CollapsibleSection title="BRAND KIT" defaultExpanded={true}>
-        {brandKitItems.length > 0 && (
+        {hasBrandKit && (
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -144,13 +158,32 @@ export default function BrandKitSection({
             </SortableContext>
           </DndContext>
         )}
-        {brandKitItems.length === 0 && (
+        {!hasBrandKit && (
           <Button variant="primary-dark" onClick={() => {
             setEditingItem(null);
             setIsModalOpen(true);
           }} sx={styles.addButton}>
             + Add Brand Kit
           </Button>
+        )}
+        {/* Child sections inside parent border: Engagements & Pricing */}
+        {hasBrandKit && (
+          <Box sx={styles.childSectionsWrapper}>
+            <EngagementsSection
+              engagements={engagements}
+              onAddEngagement={onAddEngagement}
+              onUpdateEngagement={onUpdateEngagement}
+              onDeleteEngagement={onDeleteEngagement}
+              onReorderEngagements={onReorderEngagements}
+            />
+            <PricingPackagesSection
+              pricing={pricing}
+              onAddPricing={onAddPricing}
+              onUpdatePricing={onUpdatePricing}
+              onDeletePricing={onDeletePricing}
+              onReorderPricing={onReorderPricing}
+            />
+          </Box>
         )}
       </CollapsibleSection>
 

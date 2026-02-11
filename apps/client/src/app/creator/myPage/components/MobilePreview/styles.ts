@@ -44,7 +44,13 @@ export const styles = {
     },
   } as SxProps<Theme>,
 
-  mobileContent: (backgroundColor: string, backgroundImage?: string) => ({
+  mobileContent: (
+    backgroundColor: string,
+    backgroundImage?: string,
+    backgroundImageOpacity: number = 70,
+    backgroundImageBlur: number = 0,
+    backgroundImageAppearance: 'light' | 'dark' = 'light'
+  ) => ({
     flex: 1,
     display: 'flex',
     flexDirection: 'column' as const,
@@ -64,12 +70,36 @@ export const styles = {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        filter: 'blur(3px) grayscale(0.3)',
+        opacity: backgroundImageOpacity / 100,
+        filter: backgroundImageBlur > 0 ? `blur(${backgroundImageBlur}px)` : 'none',
         zIndex: 0,
+        pointerEvents: 'none',
+      },
+      '&::after': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: backgroundImageAppearance === 'light' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)',
+        zIndex: 1,
         pointerEvents: 'none',
       },
     }),
   }) as SxProps<Theme>,
+
+  /** Wraps all foreground content so it sits above blurred bg + overlay and stays sharp (no blur) */
+  mobileContentForeground: {
+    position: 'relative' as const,
+    zIndex: 2,
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    minHeight: 0,
+  } as SxProps<Theme>,
 
   coverImageContainer: {
     position: 'relative' as const,
@@ -104,13 +134,13 @@ export const styles = {
     zIndex: 2,
   } as SxProps<Theme>,
 
-  bottomBlurGradient: (backgroundColor: string, backgroundImage?: string) => ({
+  bottomBlurGradient: (backgroundColor: string, hasBackgroundImage?: boolean) => ({
     position: 'absolute' as const,
     bottom: 0,
     left: 0,
     right: 0,
     height: 'var(--height-blur-overlay)',
-    background: backgroundImage 
+    background: hasBackgroundImage
       ? `linear-gradient(to bottom, transparent 0%, var(--color-white-overlay-30) 100%)`
       : `linear-gradient(to bottom, transparent 0%, ${backgroundColor} 100%)`,
     zIndex: 1,
@@ -137,8 +167,8 @@ export const styles = {
     boxShadow: '0 2px 8px var(--color-black-overlay-20)',
   } as SxProps<Theme>,
 
-  // Layout 1: Name below centered profile image
-  pageNameLayout1: (selectedTextColor: string) => ({
+  // Layout 1: Name below centered profile image (user's text color + font)
+  pageNameLayout1: (selectedTextColor: string, fontFamily: string) => ({
     position: 'absolute' as const,
     top: 'calc(50% + 50px)',
     left: '50%',
@@ -146,6 +176,7 @@ export const styles = {
     fontSize: { xs: 'var(--font-size-mypage-2xl)', md: 'var(--font-size-mypage-xl)' },
     fontWeight: 'var(--font-weight-bold)',
     color: selectedTextColor,
+    fontFamily: fontFamily,
     marginBottom: 0,
     textShadow: 'var(--text-shadow-sm)',
     zIndex: 2,
@@ -252,32 +283,32 @@ export const styles = {
     margin: '-110px auto var(--padding-lg) auto',
   } as SxProps<Theme>,
 
-  // Mobile preview: black circle + white icon (mono form)
-  socialIconCircle: {
+  // Theme-aware: light bg → black circle + white icon; dark bg → white circle + black icon (matches main site profile-theme-link)
+  socialIconCircle: (isDarkBg: boolean) => ({
     width: 'var(--width-mypage-icon-medium)',
     height: 'var(--height-mypage-icon-medium)',
     borderRadius: '50%',
-    backgroundColor: '#000000',
+    backgroundColor: isDarkBg ? 'var(--color-white)' : '#000000',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
     flexShrink: 0,
-    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+    boxShadow: isDarkBg ? '0 2px 8px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.2)',
     textDecoration: 'none',
-    color: 'var(--color-white)',
+    color: isDarkBg ? 'var(--color-black)' : 'var(--color-white)',
     '& svg': {
       fontSize: 'var(--size-icon-md)',
       width: 'var(--size-icon-md)',
       height: 'var(--size-icon-md)',
-      color: 'var(--color-white)',
-      fill: 'var(--color-white)',
+      color: 'inherit',
+      fill: 'currentColor',
     },
     '& .MuiSvgIcon-root': {
-      color: 'var(--color-white)',
-      fill: 'var(--color-white)',
+      color: 'inherit',
+      fill: 'currentColor',
     },
-  } as SxProps<Theme>,
+  }) as SxProps<Theme>,
 
   customButtonsContainer: {
     display: 'flex',

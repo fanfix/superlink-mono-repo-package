@@ -30,9 +30,11 @@ import {
   CREATE_ENGAGEMENT_MUTATION,
   UPDATE_ENGAGEMENT_MUTATION,
   DELETE_ENGAGEMENT_MUTATION,
+  REORDER_ENGAGEMENTS_MUTATION,
   CREATE_BRAND_KIT_ITEM_MUTATION,
   UPDATE_BRAND_KIT_ITEM_MUTATION,
   DELETE_BRAND_KIT_ITEM_MUTATION,
+  REORDER_BRAND_KIT_ITEMS_MUTATION,
 } from '../queries';
 
 /**
@@ -151,6 +153,25 @@ export const deleteEngagementApi = async (engagementId: string): Promise<DeleteE
 };
 
 /**
+ * Reorder Engagements
+ */
+export const reorderEngagementsApi = async (
+  engagementsIds: string[]
+): Promise<UpdateEngagementResponse[]> => {
+  try {
+    const response = await executeGraphQL<{ reorderEngagements: UpdateEngagementResponse[] }>({
+      operationName: 'ReorderEngagements',
+      query: REORDER_ENGAGEMENTS_MUTATION,
+      variables: { engagementsIds },
+    });
+
+    return response.data.reorderEngagements;
+  } catch (error: any) {
+    throw createApiError(error);
+  }
+};
+
+/**
  * Create Brand Kit Item
  */
 export const createBrandKitItemApi = async (
@@ -204,6 +225,27 @@ export const deleteBrandKitItemApi = async (
     });
 
     return response.data.deleteBrandKitItem;
+  } catch (error: any) {
+    throw createApiError(error);
+  }
+};
+
+/**
+ * Reorder Brand Kit Items (also used for Pricing & Packages)
+ */
+export const reorderBrandKitItemsApi = async (
+  brandKitItemsIds: string[]
+): Promise<UpdateBrandKitItemResponse[]> => {
+  try {
+    const response = await executeGraphQL<{
+      reorderBrandKitItems: UpdateBrandKitItemResponse[];
+    }>({
+      operationName: 'ReorderBrandKitItems',
+      query: REORDER_BRAND_KIT_ITEMS_MUTATION,
+      variables: { brandKitItemsIds },
+    });
+
+    return response.data.reorderBrandKitItems;
   } catch (error: any) {
     throw createApiError(error);
   }
@@ -279,9 +321,11 @@ export default {
   createEngagementApi,
   updateEngagementApi,
   deleteEngagementApi,
+  reorderEngagementsApi,
   createBrandKitItemApi,
   updateBrandKitItemApi,
   deleteBrandKitItemApi,
+  reorderBrandKitItemsApi,
   uploadAndCreateBrandKitApi,
   uploadAndUpdateBrandKitApi,
 };

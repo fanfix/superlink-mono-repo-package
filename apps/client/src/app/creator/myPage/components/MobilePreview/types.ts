@@ -68,7 +68,13 @@ export interface MobilePreviewProps {
   }>;
   backgroundColor?: string;
   backgroundImage?: string;
+  backgroundImageOpacity?: number;
+  backgroundImageBlur?: number;
+  backgroundImageAppearance?: 'light' | 'dark';
   selectedFont?: string;
+  /** Page name (title) color from API – e.g. titleColor */
+  selectedTitleColor?: string;
+  /** Intro / subheading color from API – e.g. textColor */
   selectedTextColor?: string;
   selectedLayout?: 'layout1' | 'layout2';
   contentItems?: ContentItem[];

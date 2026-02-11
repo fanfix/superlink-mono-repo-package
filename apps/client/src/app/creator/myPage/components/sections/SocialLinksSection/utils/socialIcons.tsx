@@ -274,9 +274,9 @@ export function getSocialIconColored(platform: string, size: number = 20): React
   return getSocialIcon(platform, size, WHITE);
 }
 
-/** Mono (black/white): white icon for use on black circle in mobile preview. */
+/** Mono: icon uses currentColor so parent can set light/dark theme (light bg → black circle + white icon; dark bg → white circle + black icon). */
 export function getSocialIconMono(platform: string, size: number = 16): React.ReactNode {
-  return getSocialIcon(platform, size, WHITE);
+  return getSocialIcon(platform, size, 'currentColor');
 }
 
 /** URL patterns to detect platform (same as social link dropdown). Returns platform key for getSocialIcon or null. */

@@ -163,7 +163,7 @@ export const styles = {
   customSectionName: {
     fontSize: 'var(--font-size-md-1)',
     fontWeight: 'var(--font-weight-bold)',
-    color: 'var(--color-black)',
+    color: 'inherit',
     marginBottom: 'var(--padding-md)',
     textTransform: 'uppercase' as const,
   } as SxProps<Theme>,
@@ -182,11 +182,18 @@ export const styles = {
     alignItems: 'stretch',
     borderRadius: 'var(--border-radius-md)',
     overflow: 'hidden' as const,
-    backgroundColor: 'var(--color-black-overlay-5, rgba(0,0,0,0.05))',
-    borderBottom: '1px solid var(--color-gray-200, rgba(0,0,0,0.08))',
     padding: 0,
     cursor: 'pointer',
   } as SxProps<Theme>,
+  customSectionListItemThemed: (isDarkBg: boolean, isBlackBg?: boolean) => {
+    const useGray = isDarkBg && isBlackBg;
+    return {
+      ...styles.customSectionListItem,
+      backgroundColor: useGray ? 'var(--color-gray-100)' : isDarkBg ? 'rgba(255,255,255,0.08)' : 'var(--color-black-overlay-5, rgba(0,0,0,0.05))',
+      borderBottom: useGray ? '1px solid var(--color-gray-200)' : isDarkBg ? '1px solid rgba(255,255,255,0.12)' : '1px solid var(--color-gray-200, rgba(0,0,0,0.08))',
+      color: useGray ? 'var(--color-black)' : isDarkBg ? 'var(--color-white)' : 'inherit',
+    } as SxProps<Theme>;
+  },
 
   customSectionListImageWrap: {
     position: 'relative' as const,
@@ -257,15 +264,23 @@ export const styles = {
     alignItems: 'center',
     gap: 'var(--padding-md)',
     padding: 'var(--padding-md)',
-    backgroundColor: 'var(--color-white)',
-    border: '1px solid var(--color-gray-200)',
+    border: '1px solid transparent',
     borderRadius: 'var(--border-radius-md)',
     cursor: 'pointer',
-    transition: 'background-color 0.2s ease',
-    '&:hover': {
-      backgroundColor: 'var(--color-gray-50)',
-    },
+    transition: 'background-color 0.2s ease, color 0.2s ease',
   } as SxProps<Theme>,
+  customSectionListItemFallbackThemed: (isDarkBg: boolean, isBlackBg?: boolean) => {
+    const useGray = isDarkBg && isBlackBg;
+    return {
+      ...styles.customSectionListItemFallback,
+      backgroundColor: useGray ? 'var(--color-gray-100)' : isDarkBg ? 'rgba(255,255,255,0.08)' : 'var(--color-white)',
+      border: useGray ? '1px solid var(--color-gray-200)' : isDarkBg ? '1px solid rgba(255,255,255,0.12)' : '1px solid var(--color-gray-200)',
+      color: useGray ? 'var(--color-black)' : isDarkBg ? 'var(--color-white)' : 'var(--color-black)',
+      '&:hover': {
+        backgroundColor: useGray ? 'var(--color-gray-200)' : isDarkBg ? 'rgba(255,255,255,0.12)' : 'var(--color-gray-50)',
+      },
+    } as SxProps<Theme>;
+  },
 
   customSectionListIcon: {
     display: 'flex',
@@ -440,17 +455,24 @@ export const styles = {
     alignItems: 'center',
     gap: 'var(--padding-sm)',
     padding: 'var(--padding-md)',
-    backgroundColor: 'var(--color-gray-100)',
     borderRadius: 'var(--border-radius-md)',
     cursor: 'pointer',
-    transition: 'background-color 0.2s ease',
+    transition: 'background-color 0.2s ease, color 0.2s ease',
     flex: 1,
     minWidth: 0,
     overflow: 'hidden' as const,
-    '&:hover': {
-      backgroundColor: 'var(--color-gray-200)',
-    },
   } as SxProps<Theme>,
+  customSectionParallelItemThemed: (isDarkBg: boolean, isBlackBg?: boolean) => {
+    const useGray = isDarkBg && isBlackBg;
+    return {
+      ...styles.customSectionParallelItem,
+      backgroundColor: useGray ? 'var(--color-gray-100)' : isDarkBg ? 'rgba(255,255,255,0.08)' : 'var(--color-gray-100)',
+      color: useGray ? 'var(--color-black)' : isDarkBg ? 'var(--color-white)' : 'var(--color-black)',
+      '&:hover': {
+        backgroundColor: useGray ? 'var(--color-gray-200)' : isDarkBg ? 'rgba(255,255,255,0.12)' : 'var(--color-gray-200)',
+      },
+    } as SxProps<Theme>;
+  },
 
   customSectionParallelImage: {
     width: 44,
@@ -580,7 +602,6 @@ export const styles = {
   textSection: {
     padding: 'var(--padding-lg)',
     marginBottom: 'var(--padding-md)',
-    backgroundColor: 'var(--color-gray-100)',
     borderRadius: 'var(--border-radius-md)',
     display: 'flex',
     flexDirection: 'column' as const,
@@ -588,6 +609,14 @@ export const styles = {
     textAlign: 'center' as const,
     gap: 'var(--spacing-mypage-gap-xs)',
   } as SxProps<Theme>,
+  textSectionThemed: (isDarkBg: boolean, isBlackBg?: boolean) => {
+    const useGray = isDarkBg && isBlackBg;
+    return {
+      ...styles.textSection,
+      backgroundColor: useGray ? 'var(--color-gray-100)' : isDarkBg ? 'rgba(255,255,255,0.08)' : 'var(--color-gray-100)',
+      color: useGray ? 'var(--color-black)' : isDarkBg ? 'var(--color-white)' : 'var(--color-black)',
+    } as SxProps<Theme>;
+  },
 
   textSectionTitle: {
     fontSize: 'var(--font-size-md-1)',
@@ -607,17 +636,30 @@ export const styles = {
     padding: 'var(--padding-lg)',
     marginBottom: 'var(--padding-md)',
   } as SxProps<Theme>,
+  emailSectionThemed: (isDarkBg: boolean, isBlackBg?: boolean) => {
+    const useGray = isDarkBg && isBlackBg;
+    return {
+      ...styles.emailSection,
+      color: useGray ? 'var(--color-black)' : isDarkBg ? 'var(--color-white)' : 'var(--color-black)',
+    } as SxProps<Theme>;
+  },
 
   emailSectionTitle: {
     fontSize: 'var(--font-size-sm)',
     fontWeight: 'var(--font-weight-normal)',
-    color: 'var(--color-black)',
     padding: 'var(--padding-md)',
-    backgroundColor: 'var(--color-gray-100)',
     borderRadius: 'var(--border-radius-md)',
     marginBottom: 'var(--padding-sm)',
     width: '100%',
   } as SxProps<Theme>,
+  emailSectionTitleThemed: (isDarkBg: boolean, isBlackBg?: boolean) => {
+    const useGray = isDarkBg && isBlackBg;
+    return {
+      ...styles.emailSectionTitle,
+      backgroundColor: useGray ? 'var(--color-gray-100)' : isDarkBg ? 'rgba(255,255,255,0.08)' : 'var(--color-gray-100)',
+      color: useGray ? 'var(--color-black)' : isDarkBg ? 'var(--color-white)' : 'var(--color-black)',
+    } as SxProps<Theme>;
+  },
 
   emailInputContainer: {
     display: 'flex',
@@ -677,13 +719,27 @@ export const styles = {
     padding: 'var(--padding-lg)',
     marginBottom: 'var(--padding-md)',
   } as SxProps<Theme>,
+  brandKitSectionThemed: (isDarkBg: boolean, isBlackBg?: boolean) => {
+    const useGray = isDarkBg && isBlackBg;
+    return {
+      ...styles.brandKitSection,
+      color: useGray ? 'var(--color-black)' : isDarkBg ? 'var(--color-white)' : 'var(--color-black)',
+    } as SxProps<Theme>;
+  },
 
   brandKitItemContainer: {
     padding: 'var(--padding-lg)',
-    backgroundColor: 'var(--color-gray-100)',
     borderRadius: 'var(--border-radius-md)',
     marginBottom: 'var(--padding-md)',
   } as SxProps<Theme>,
+  brandKitItemContainerThemed: (isDarkBg: boolean, isBlackBg?: boolean) => {
+    const useGray = isDarkBg && isBlackBg;
+    return {
+      ...styles.brandKitItemContainer,
+      backgroundColor: useGray ? 'var(--color-gray-100)' : isDarkBg ? 'rgba(255,255,255,0.08)' : 'var(--color-gray-100)',
+      color: useGray ? 'var(--color-black)' : isDarkBg ? 'var(--color-white)' : 'var(--color-black)',
+    } as SxProps<Theme>;
+  },
 
   brandKitHeader: {
     display: 'flex',

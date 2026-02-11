@@ -7,9 +7,14 @@ import { styles } from './styles';
 
 interface TextSectionRendererProps {
   section: TextSection;
+  textColor?: string;
+  /** When true, section uses dark card background + white text. */
+  isDarkBg?: boolean;
+  /** When true (black page bg), section uses gray background + black text. */
+  isBlackBg?: boolean;
 }
 
-export function TextSectionRenderer({ section }: TextSectionRendererProps) {
+export function TextSectionRenderer({ section, isDarkBg = false, isBlackBg = false }: TextSectionRendererProps) {
   const [emailValue, setEmailValue] = useState('');
   
   // Check if this is an email section - use type field if available, otherwise check title
@@ -30,8 +35,8 @@ export function TextSectionRenderer({ section }: TextSectionRendererProps) {
 
   if (isEmailSection) {
     return (
-      <Box sx={styles.emailSection}>
-        <Typography sx={styles.emailSectionTitle}>{section.title}</Typography>
+      <Box sx={styles.emailSectionThemed(isDarkBg, isBlackBg)}>
+        <Typography sx={styles.emailSectionTitleThemed(isDarkBg, isBlackBg)}>{section.title}</Typography>
         <Box sx={styles.emailInputContainer}>
           <EmailIcon sx={styles.emailInputIcon} />
           <OutlinedInput
@@ -57,9 +62,9 @@ export function TextSectionRenderer({ section }: TextSectionRendererProps) {
   }
 
   return (
-    <Box sx={styles.textSection}>
-      <Typography sx={styles.textSectionTitle}>{section.title}</Typography>
-      <Typography sx={styles.textSectionContent}>{section.content}</Typography>
+    <Box sx={styles.textSectionThemed(isDarkBg, isBlackBg)}>
+      <Typography sx={[styles.textSectionTitle, { color: 'inherit' }]}>{section.title}</Typography>
+      <Typography sx={[styles.textSectionContent, { color: 'inherit' }]}>{section.content}</Typography>
     </Box>
   );
 }

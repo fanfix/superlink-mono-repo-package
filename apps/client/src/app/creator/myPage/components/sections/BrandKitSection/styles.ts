@@ -22,6 +22,13 @@ export const styles = {
     marginBottom: 'var(--padding-md)',
   } as SxProps<Theme>,
 
+  childSectionsWrapper: {
+    marginTop: 'var(--padding-md)',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: 0,
+  } as SxProps<Theme>,
+
   brandKitItemCard: {
     display: 'flex',
     alignItems: 'center',

@@ -10,6 +10,7 @@ import BackgroundColorSection from './BackgroundColorSection';
 import BackgroundImageSection from './BackgroundImageSection';
 import VerifiedCreatorModal from '../modals/VerifiedCreatorModal';
 import ImageCropModal from '../modals/ImageCropModal';
+import BackgroundImageCropModal, { type BackgroundImageCropResult } from '../modals/BackgroundImageCropModal';
 import {
   Close as CloseIcon,
   Add as AddIcon,
@@ -59,7 +60,8 @@ interface ProfileSectionProps {
   onTextColorChange?: (color: string) => void;
   onLayoutChange?: (layout: 'layout1' | 'layout2') => void;
   onBackgroundColorChange?: (color: string) => void;
-  onBackgroundImageChange?: (fileOrUrl: File | string) => void;
+  /** When options provided, result is from BackgroundImageCropModal (file + opacity, blur, appearance). */
+  onBackgroundImageChange?: (fileOrUrl: File | string, options?: { opacity: number; blur: number; appearance: 'light' | 'dark' }) => void;
 }
 
 export default function ProfileSection({
@@ -91,7 +93,7 @@ export default function ProfileSection({
   // Crop modal state
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-  const [cropImageType, setCropImageType] = useState<'profile' | 'banner' | null>(null);
+  const [cropImageType, setCropImageType] = useState<'profile' | 'banner' | 'background' | null>(null);
 
   // Tiptap Editor Setup
   const editor = useEditor({
@@ -475,10 +477,36 @@ export default function ProfileSection({
       onProfileImageChange(croppedFile);
     } else if (cropImageType === 'banner') {
       onCoverImageChange(croppedFile);
+    } else if (cropImageType === 'background') {
+      // Background uses BackgroundImageCropModal and passes options there
+      onBackgroundImageChange?.(croppedFile);
     }
     setCropModalOpen(false);
     setSelectedImageFile(null);
     setCropImageType(null);
+  };
+
+  const handleBackgroundCropSave = (result: BackgroundImageCropResult) => {
+    onBackgroundImageChange?.(result.file, {
+      opacity: result.opacity,
+      blur: result.blur,
+      appearance: result.appearance,
+    });
+    setCropModalOpen(false);
+    setSelectedImageFile(null);
+    setCropImageType(null);
+  };
+
+  const handleBackgroundImageChangeWithCrop = (fileOrUrl: File | string) => {
+    if (typeof fileOrUrl === 'string') {
+      onBackgroundImageChange?.(fileOrUrl);
+      return;
+    }
+    if (fileOrUrl instanceof File && fileOrUrl.type.startsWith('image/')) {
+      setSelectedImageFile(fileOrUrl);
+      setCropImageType('background');
+      setCropModalOpen(true);
+    }
   };
 
   const handleCropClose = () => {
@@ -771,7 +799,7 @@ export default function ProfileSection({
 
         <Box sx={{ flex: 1 }}>
           <Typography sx={sectionTitleStyles}>Background Image</Typography>
-          <BackgroundImageSection backgroundImage={backgroundImage} onImageChange={onBackgroundImageChange} />
+          <BackgroundImageSection backgroundImage={backgroundImage} onImageChange={handleBackgroundImageChangeWithCrop} />
         </Box>
       </Box>
       <Box sx={{ marginTop: 'var(--padding-2xl)' }}>
@@ -786,14 +814,24 @@ export default function ProfileSection({
         onContinue={() => undefined}
       />
 
-      <ImageCropModal
-        open={cropModalOpen}
-        imageFile={selectedImageFile}
-        aspectRatio={cropImageType === 'profile' ? 1 : cropImageType === 'banner' ? 16 / 9 : undefined}
-        onClose={handleCropClose}
-        onSave={handleCropSave}
-        title={cropImageType === 'profile' ? 'Crop Profile Picture' : 'Crop Banner Image'}
-      />
+      {cropImageType === 'background' ? (
+        <BackgroundImageCropModal
+          open={cropModalOpen}
+          imageFile={selectedImageFile}
+          onClose={handleCropClose}
+          onSave={handleBackgroundCropSave}
+          title="Crop Image"
+        />
+      ) : (
+        <ImageCropModal
+          open={cropModalOpen}
+          imageFile={selectedImageFile}
+          aspectRatio={cropImageType === 'profile' ? 1 : cropImageType === 'banner' ? 16 / 9 : undefined}
+          onClose={handleCropClose}
+          onSave={handleCropSave}
+          title={cropImageType === 'profile' ? 'Crop Profile Picture' : cropImageType === 'banner' ? 'Crop Banner Image' : 'Crop Image'}
+        />
+      )}
     </CollapsibleSection>
   );
 }
