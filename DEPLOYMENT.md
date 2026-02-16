@@ -61,8 +61,9 @@ gcloud run deploy superlink-mono-repo-package \
 
 ## Notes
 
-- The router strips the `/admin` and `/agency` prefixes before forwarding to the apps
-- Each app runs on a separate internal port to avoid conflicts
-- All apps share the same node_modules from the monorepo (compatible dependencies)
-- Static assets are served correctly through the proxy
+- **Routing:** The router forwards the **full path** (including `/admin` or `/agency`) to each app. Admin and Agency are built with `basePath` set to `/admin` and `/agency` respectively, so they expect the prefix and serve the full app at those routes.
+- **Root:** `/` and all other paths go to the Client app. `/agency` and `/agency/*` run the **whole agency app**; `/admin` and `/admin/*` run the whole admin app.
+- Each app runs on a separate internal port to avoid conflicts.
+- All apps share the same node_modules from the monorepo (compatible dependencies).
+- Static assets are served correctly because each app is built with the correct `NEXT_PUBLIC_BASE_PATH` in `Dockerfile.unified`.
 

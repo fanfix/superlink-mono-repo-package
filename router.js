@@ -125,37 +125,42 @@ const waitForServer = (port, name, maxAttempts = 60) => {
   });
 };
 
+// Parse pathname and query from req.url (pathname has no query string)
+const getPathnameAndQuery = (url) => {
+  const u = url || '/';
+  const i = u.indexOf('?');
+  return i === -1 ? [u, ''] : [u.slice(0, i), u.slice(i)];
+};
+
 // Main router server - create it but don't start listening yet
 const server = http.createServer((req, res) => {
   const url = req.url || '/';
-  
+  const [pathname, query] = getPathnameAndQuery(url);
+  const queryStr = query ? (query.startsWith('?') ? query : '?' + query) : '';
+
   console.log(`[Router] Incoming request: ${req.method} ${url}`);
-  
+
   // Route /admin/* to admin app
   // Admin app is built with basePath=/admin, so it expects /admin prefix
   // Also handle /admin (without trailing slash) -> redirect to /admin/
-  if (url.startsWith('/admin')) {
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
     console.log(`[Router] Routing to Admin app (port ${ADMIN_PORT}): ${url}`);
-    // Handle exact /admin -> redirect to /admin/
-    if (url === '/admin') {
-      res.writeHead(301, { 'Location': '/admin/' });
+    if (pathname === '/admin') {
+      res.writeHead(301, { 'Location': '/admin/' + queryStr });
       res.end();
       return;
     }
-    // Admin app expects /admin prefix, so pass the full path
     proxyRequest(req, res, ADMIN_PORT, url);
   }
-  // Route /agency/* to agency app
+  // Route /agency/* to agency app (full agency app runs at /agency)
   // Agency app is built with basePath=/agency, so it expects /agency prefix
-  else if (url.startsWith('/agency')) {
+  else if (pathname === '/agency' || pathname.startsWith('/agency/')) {
     console.log(`[Router] Routing to Agency app (port ${AGENCY_PORT}): ${url}`);
-    // Handle exact /agency -> redirect to /agency/
-    if (url === '/agency') {
-      res.writeHead(301, { 'Location': '/agency/' });
+    if (pathname === '/agency') {
+      res.writeHead(301, { 'Location': '/agency/' + queryStr });
       res.end();
       return;
     }
-    // Agency app expects /agency prefix, so pass the full path
     proxyRequest(req, res, AGENCY_PORT, url);
   }
   // Route everything else (including root /) to client app
