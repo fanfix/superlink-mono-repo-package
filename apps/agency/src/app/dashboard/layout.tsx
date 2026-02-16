@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { profile } = useProfileApi();
   
   // Get branding logo from profile
-  const brandingLogo = profile?.brandImageURL || '/black_footer_icon.png';
+  const brandingLogo = profile?.brandImageURL || '/assets/black_footer_icon.png';
 
   useEffect(() => {
     setIsHydrated(true);
@@ -209,8 +209,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           variant="agency"
           items={items}
           companyName="SuperLink"
-          companyLogoIcon="/black_footer_icon.png"
-          companyLogo="/black_footer_icon.png"
+          companyLogoIcon="/assets/black_footer_icon.png"
+          companyLogo="/assets/black_footer_icon.png"
           topLogo={brandingLogo}
           width="218px"
           height="100vh"
@@ -237,8 +237,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           variant="agency"
           items={items}
           companyName="SuperLink"
-          companyLogoIcon="/black_footer_icon.png"
-          companyLogo="/black_footer_icon.png"
+          companyLogoIcon="/assets/black_footer_icon.png"
+          companyLogo="/assets/black_footer_icon.png"
           topLogo={brandingLogo}
           width="218px"
           height="100vh"

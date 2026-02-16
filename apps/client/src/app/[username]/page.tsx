@@ -32,7 +32,7 @@ function bioToPreviewProps(user: PublicUser): ReturnType<typeof buildPreviewProp
   const selectedLayout = bio.layoutForAvatarAndBio === 'horizontal' ? 'layout2' : 'layout1';
 
   const customSections: CustomSection[] = (bio.customSections || [])
-    .filter((s) => s.sectionType !== 'unlock_content' && s.sectionType !== 'brand_kit')
+    .filter((s) => s.sectionType !== 'unlock_content' && s.sectionType !== 'brand_kit' && s.sectionType !== 'email' && s.sectionType !== 'text')
     .map((section) => ({
       id: section.id,
       name: section.name,
@@ -43,7 +43,8 @@ function bioToPreviewProps(user: PublicUser): ReturnType<typeof buildPreviewProp
             ? 'row'
             : 'list',
       useContentImageAsBackground: false,
-      sectionType: section.sectionType as CustomSection['sectionType'],
+      sectionType: (section.sectionType ?? (section.isEmbed ? 'embeds' : 'links')) as CustomSection['sectionType'],
+      isEmbed: !!section.isEmbed,
       items: (section.sectionLinks || []).map((link) => ({
         id: link.id,
         title: link.name,
@@ -52,6 +53,7 @@ function bioToPreviewProps(user: PublicUser): ReturnType<typeof buildPreviewProp
         price: '',
         isEmail: link.isEmail ?? false,
         ...(link.content != null && link.content !== '' && { content: link.content }),
+        ...(link.size != null && link.size !== '' && { size: link.size }),
       })),
     }));
 
@@ -228,16 +230,34 @@ export default function PublicProfilePage() {
   const handleShareClick = useCallback(() => {
     if (typeof window === 'undefined') return;
     const url = window.location.href;
-    navigator.clipboard
-      .writeText(url)
-      .then(() => {
-        setToast({ message: 'Link copied!', type: 'success', visible: true });
-        setTimeout(() => setToast((p) => ({ ...p, visible: false })), 2000);
-      })
-      .catch(() => {
-        setToast({ message: 'Failed to copy link', type: 'error', visible: true });
-        setTimeout(() => setToast((p) => ({ ...p, visible: false })), 2000);
-      });
+    const showSuccess = () => {
+      setToast({ message: 'Link copied!', type: 'success', visible: true });
+      setTimeout(() => setToast((p) => ({ ...p, visible: false })), 2000);
+    };
+    const showError = () => {
+      setToast({ message: 'Failed to copy link', type: 'error', visible: true });
+      setTimeout(() => setToast((p) => ({ ...p, visible: false })), 2000);
+    };
+    const doCopy = () => {
+      const textarea = document.createElement('textarea');
+      textarea.value = url;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showSuccess();
+      } catch {
+        showError();
+      }
+      document.body.removeChild(textarea);
+    };
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(url).then(showSuccess).catch(doCopy);
+    } else {
+      doCopy();
+    }
   }, []);
 
   // Early exits: invalid URL, loading, error, no content

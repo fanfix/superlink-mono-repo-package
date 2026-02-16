@@ -118,6 +118,8 @@ const PromoCard = styled(Box)({
 const SuperLinkLogo = styled(Image)({
   width: 120,
   height: 'auto',
+  borderRadius: 0,
+  objectFit: 'contain',
 });
 
 
@@ -688,30 +690,33 @@ function CreatorDetailContent() {
   // Get all team members from agencyTeamAccess
   const teamMembers = bio.agencyTeamAccess?.map(access => access.agencyTeam?.user).filter(Boolean) || [];
   const assignedTeam = teamMembers[0]; // First team member for backward compatibility
-  const socialMedia = bio.socialLinks?.reduce((acc: any, link: any) => {
-    const name = link.name?.toLowerCase();
-    if (name) {
-      acc[name] = link.url || '';
-    }
-    return acc;
-  }, {}) || {};
+  const socialLinks = bio.socialLinks || [];
 
   // Default avatar/logo paths
   const DEFAULT_AVATAR = '/assets/default-avatar.svg';
   const DEFAULT_COMPANY_LOGO = '/navbar_icon.png';
 
+  const getProfileImage = (url: string | null | undefined) =>
+    (url && typeof url === 'string' && url.trim() !== '' && url !== 'null' && url !== 'undefined')
+      ? url
+      : DEFAULT_AVATAR;
+
+  // bio.imageURL null ho to default avatar - creator profile me (assigned team ka image use mat karo)
+  const profileImage = getProfileImage(bio.imageURL);
+  const assignedImg = getProfileImage(assignedTeam?.imageURL);
+
   // Transform creator data for components
   const creatorData = {
     id: creator.id,
     name: bio.pageName || '',
-    email: assignedTeam?.email || '',
+    email: bio.user?.email || '',
     username: bio.username || '',
     bio: bio.pageName || '',
-    profileImage: bio.imageURL || assignedTeam?.imageURL || DEFAULT_AVATAR,
+    profileImage: profileImage,
     assignedTo: assignedTeam?.name || 'Unassigned',
     assignedEmail: assignedTeam?.email || '',
-    assignedAvatar: assignedTeam?.imageURL || DEFAULT_AVATAR,
-    socialMedia,
+    assignedAvatar: assignedImg,
+    socialLinks,
     allowAgencyBranding: bio.allowAgencyBranding || false,
     payoutMethod: creator.payoutMethod,
     accepted: creator.accepted,
@@ -736,7 +741,7 @@ function CreatorDetailContent() {
             />
             {/* Social Links */}
             <SocialLinks 
-              socialMedia={socialMedia}
+              socialLinks={socialLinks}
               agencyBranding={creatorData.allowAgencyBranding}
               monetization={creatorData.payoutMethod === 'agency_payout'}
               onAgencyBrandingChange={handleAgencyBrandingChange}
@@ -791,7 +796,16 @@ function CreatorDetailContent() {
             </PromoCard>
 
             <PromoCard sx={promoCardTransparentStyles}>
-              <SuperLinkLogo src="/SuperLinkLogo.png" alt="SuperLink" />
+              <SuperLinkLogo
+                src="/assets/black_footer_icon.png"
+                alt="SuperLink"
+                variant="rounded-sm"
+                objectFit="contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.endsWith('/black_footer_icon.png')) target.src = '/black_footer_icon.png';
+                }}
+              />
               <Typography variant="text-sm" sx={{ color: 'var(--color-grey-light)' }}>
                 Create your own page
               </Typography>

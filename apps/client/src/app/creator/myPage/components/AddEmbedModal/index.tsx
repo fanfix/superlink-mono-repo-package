@@ -10,7 +10,7 @@ import { getEmbedPlatform, embedSizes, titleCharLimit } from '../../../../../uti
 import { useDebounce } from '../../../../../utils/debounce';
 import { EmbedMaker } from '../../../../../components/EmbedMaker';
 
-export default function AddEmbedModal({ open, onClose, onAdd, customSectionId }: AddEmbedModalProps) {
+export default function AddEmbedModal({ open, onClose, onAdd, editingItem, onUpdate, customSectionId }: AddEmbedModalProps) {
   const [url, setUrl] = useState('');
   const [name, setName] = useState('');
   const [size, setSize] = useState('small');
@@ -25,6 +25,7 @@ export default function AddEmbedModal({ open, onClose, onAdd, customSectionId }:
   const debouncedUrl = useDebounce(url, 300);
 
   useEffect(() => {
+    if (editingItem) return; // keep pre-filled name/title when editing
     const detectPlatform = async (urlValue: string) => {
       if (!urlValue || !urlValue.trim()) {
         setName('');
@@ -79,7 +80,7 @@ export default function AddEmbedModal({ open, onClose, onAdd, customSectionId }:
       setDetecting(false);
       lastProcessedUrlRef.current = '';
     }
-  }, [debouncedUrl, fetchRssFeed]);
+  }, [debouncedUrl, fetchRssFeed, editingItem]);
 
   const getUrl = useCallback((nameValue: string, urlValue: string) => {
     if (nameValue === 'RSS') {
@@ -106,6 +107,14 @@ export default function AddEmbedModal({ open, onClose, onAdd, customSectionId }:
     onClose();
   }, [onClose]);
 
+  useEffect(() => {
+    if (open && editingItem) {
+      setUrl(editingItem.url || '');
+      setName(editingItem.title || '');
+      setSize((editingItem.size as string) || 'small');
+    }
+  }, [open, editingItem]);
+
   const handleAdd = useCallback(async () => {
     if (!url || !name || (name === 'RSS' && !rssTitle)) {
       return;
@@ -114,25 +123,25 @@ export default function AddEmbedModal({ open, onClose, onAdd, customSectionId }:
     setLoading(true);
     try {
       const finalUrl = getUrl(name, url);
-      onAdd({
-        name: name.trim(),
-        url: finalUrl,
-        size,
-        imageURL: imageURL || undefined,
-      });
+      const data = { name: name.trim(), url: finalUrl, size, imageURL: imageURL || undefined };
+      if (editingItem && onUpdate && customSectionId) {
+        onUpdate(customSectionId, editingItem.id, data);
+      } else {
+        onAdd(data);
+      }
       handleClose();
     } catch (error) {
     } finally {
       setLoading(false);
     }
-  }, [url, name, size, imageURL, rssTitle, rssLimit, getUrl, onAdd, handleClose]);
+  }, [url, name, size, imageURL, rssTitle, rssLimit, getUrl, onAdd, onUpdate, editingItem, customSectionId, handleClose]);
 
   const isFormValid = url && name && (name !== 'RSS' || rssTitle);
   const availableSizes = name ? (embedSizes[name] || []) : [];
   const isLoading = detecting || rssLoading;
 
   return (
-    <Modal open={open} onClose={handleClose} title="Add Embed" maxWidth={600}>
+    <Modal open={open} onClose={handleClose} title={editingItem ? 'Edit Embed' : 'Add Embed'} maxWidth={600}>
       <Box sx={embedModalStyles.modalContentContainer}>
         <Box>
           <Typography sx={embedModalStyles.label}>Website URL</Typography>
@@ -232,7 +241,7 @@ export default function AddEmbedModal({ open, onClose, onAdd, customSectionId }:
             loading={loading}
             sx={embedModalStyles.darkButton}
           >
-            Add
+            {editingItem ? 'Update' : 'Add'}
           </Button>
         </Box>
       </Box>

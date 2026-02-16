@@ -10,6 +10,8 @@ export interface ContentItem {
   isEmail?: boolean;
   /** Item-level content (e.g. for parallel section links), from API */
   content?: string;
+  /** Embed/link size: e.g. 'small' | 'large' from sectionLinks[].size */
+  size?: string;
 }
 
 export interface CustomSection {

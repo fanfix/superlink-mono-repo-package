@@ -218,10 +218,13 @@ export default function CreatorProfileHeader({
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [profileImageError, setProfileImageError] = useState(false);
   const DEFAULT_AVATAR_SRC = '/assets/default-avatar.svg';
+  const isValidSrc = (s: string | null | undefined) =>
+    s && typeof s === 'string' && s.trim() !== '' && s !== 'null' && s !== 'undefined';
+  // bio.imageURL null ho to default avatar dikhao
   const avatarSrc =
     profileImageError
       ? DEFAULT_AVATAR_SRC
-      : (creator.profileImage || creator.assignedAvatar || DEFAULT_AVATAR_SRC);
+      : (isValidSrc(creator.profileImage) ? creator.profileImage : (isValidSrc(creator.assignedAvatar) ? creator.assignedAvatar : DEFAULT_AVATAR_SRC)) || DEFAULT_AVATAR_SRC;
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside

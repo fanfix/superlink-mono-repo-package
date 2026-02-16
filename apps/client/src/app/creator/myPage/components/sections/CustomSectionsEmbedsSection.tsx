@@ -94,6 +94,7 @@ export default function CustomSectionsEmbedsSection({
   const [isVerifiedCreatorModalOpen, setIsVerifiedCreatorModalOpen] = useState(false);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [editingContentItem, setEditingContentItem] = useState<{ sectionId: string; item: ContentItem } | null>(null);
+  const [editingEmbedItem, setEditingEmbedItem] = useState<{ sectionId: string; item: ContentItem } | null>(null);
   const [editingContent, setEditingContent] = useState<ContentItem | null>(null);
   const [editingCustomSection, setEditingCustomSection] = useState<CustomSection | null>(null);
   const [editingTextSection, setEditingTextSection] = useState<TextSection | null>(null);
@@ -619,8 +620,15 @@ export default function CustomSectionsEmbedsSection({
                               item={item}
                               sectionId={section.id}
                               onEdit={(sectionId, item) => {
-                                setEditingContentItem({ sectionId, item });
-                                setIsAddContentModalOpen(true);
+                                const isEmbedSection = section.sectionType === 'embeds' || section.isEmbed === true;
+                                if (isEmbedSection) {
+                                  setEditingEmbedItem({ sectionId, item });
+                                  setSelectedSectionId(sectionId);
+                                  setIsAddEmbedModalOpen(true);
+                                } else {
+                                  setEditingContentItem({ sectionId, item });
+                                  setIsAddContentModalOpen(true);
+                                }
                               }}
                               onDelete={(sectionId, itemId) => {
                                 if (onDeleteContentFromCustomSection) {
@@ -649,6 +657,7 @@ export default function CustomSectionsEmbedsSection({
                       const isEmbedSection = section.sectionType === 'embeds' || section.isEmbed === true;
                       if (isEmbedSection) {
                         setSelectedSectionId(section.id);
+                        setEditingEmbedItem(null);
                         setIsAddEmbedModalOpen(true);
                       } else {
                         setSelectedSectionId(section.id);
@@ -917,7 +926,15 @@ export default function CustomSectionsEmbedsSection({
         onClose={() => {
           setIsAddEmbedModalOpen(false);
           setSelectedSectionId(null);
+          setEditingEmbedItem(null);
         }}
+        editingItem={editingEmbedItem && selectedSectionId && editingEmbedItem.sectionId === selectedSectionId ? { id: editingEmbedItem.item.id, title: editingEmbedItem.item.title, url: editingEmbedItem.item.url, size: editingEmbedItem.item.size } : null}
+        onUpdate={editingEmbedItem && onUpdateContentInCustomSection ? (sectionId, linkId, data) => {
+          onUpdateContentInCustomSection(sectionId, linkId, { title: data.name, url: data.url, thumbnail: data.imageURL, isEmail: false, size: data.size });
+          setEditingEmbedItem(null);
+          setIsAddEmbedModalOpen(false);
+          setSelectedSectionId(null);
+        } : undefined}
         onAdd={async (data) => {
           if (selectedSectionId && onAddContentToCustomSection) {
             await onAddContentToCustomSection(selectedSectionId, {

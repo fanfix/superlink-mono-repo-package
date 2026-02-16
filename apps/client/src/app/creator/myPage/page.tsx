@@ -273,31 +273,45 @@ export default function MyPage() {
             }
           }
           
-          // Load custom sections from bio
+          // Load custom sections from bio (exclude unlock_content, brand_kit, email, text - those are separate)
           if (bio.customSections && bio.customSections.length > 0) {
-            // Transform custom sections to match component types
-            const transformedSections: CustomSection[] = bio.customSections
-              .filter((section) => section.sectionType !== 'unlock_content' && section.sectionType !== 'brand_kit')
-              .map((section) => ({
-                id: section.id,
-                name: section.name,
-                layout: section.rowMode === 'parallel_row' ? 'parallel-row' : section.rowMode === 'slider' ? 'row' : 'list',
-                useContentImageAsBackground: false,
-                // Ensure embed sections always have sectionType 'embeds' so "Add Embed" shows and embed modal opens
-                sectionType: (section.sectionType ?? (section.isEmbed ? 'embeds' : 'links')) as CustomSection['sectionType'],
-                isEmbed: !!section.isEmbed,
-                items: (section.sectionLinks || []).map((link) => ({
-                  id: link.id,
-                  title: link.name,
-                  url: link.url,
-                  imageUrl: link.imageURL,
-                  price: '',
-                  isEmail: link.isEmail,
-                  ...(link.content != null && link.content !== '' && { content: link.content }),
-                })),
-              }));
+            const linkOrEmbedSections = bio.customSections.filter(
+              (s) => s.sectionType !== 'unlock_content' && s.sectionType !== 'brand_kit' && s.sectionType !== 'email' && s.sectionType !== 'text'
+            );
+            const transformedSections: CustomSection[] = linkOrEmbedSections.map((section) => ({
+              id: section.id,
+              name: section.name,
+              layout: section.rowMode === 'parallel_row' ? 'parallel-row' : section.rowMode === 'slider' ? 'row' : 'list',
+              useContentImageAsBackground: false,
+              sectionType: (section.sectionType ?? (section.isEmbed ? 'embeds' : 'links')) as CustomSection['sectionType'],
+              isEmbed: !!section.isEmbed,
+              items: (section.sectionLinks || []).map((link) => ({
+                id: link.id,
+                title: link.name,
+                url: link.url,
+                imageUrl: link.imageURL,
+                price: '',
+                isEmail: link.isEmail,
+                ...(link.content != null && link.content !== '' && { content: link.content }),
+                ...(link.size != null && link.size !== '' && { size: link.size }),
+              })),
+            }));
             setCustomSections(transformedSections);
             setCustomSectionsOrder(['exclusive-content', ...transformedSections.map((s) => s.id)]);
+
+            // Load text sections (email + text) separately so they don't become custom sections
+            const emailTextSections = (bio.customSections || []).filter(
+              (s) => s.sectionType === 'email' || s.sectionType === 'text'
+            );
+            if (emailTextSections.length > 0) {
+              const loadedTextSections: TextSection[] = emailTextSections.map((s) => ({
+                id: s.id,
+                title: s.name,
+                content: s.sectionLinks?.[0]?.content ?? '',
+                type: s.sectionType === 'email' ? 'email' : 'text',
+              }));
+              setTextSections(loadedTextSections);
+            }
           }
           
           // Load brand kit data from bio custom sections
@@ -706,7 +720,7 @@ export default function MyPage() {
     }
   }, [addCustomSectionLink, uploadFile, base64ToFile, showToast]);
 
-  const handleUpdateContentInCustomSection = useCallback(async (sectionId: string, itemId: string, data: { thumbnail?: string | File; title: string; url: string; isEmail: boolean; content?: string }) => {
+  const handleUpdateContentInCustomSection = useCallback(async (sectionId: string, itemId: string, data: { thumbnail?: string | File; title: string; url: string; isEmail: boolean; content?: string; size?: string }) => {
     try {
       let imageURL: string | undefined;
       
@@ -734,6 +748,7 @@ export default function MyPage() {
         imageURL: imageURL || '',
         content: data.content ?? '',
         isEmail: data.isEmail,
+        ...(data.size !== undefined && { size: data.size }),
       });
       
     setCustomSections((prev) =>
@@ -750,6 +765,7 @@ export default function MyPage() {
                     url: data.url,
                     isEmail: data.isEmail,
                     ...(data.content !== undefined && { content: data.content }),
+                    ...(data.size !== undefined && { size: data.size }),
                   }
                 : item
             ),
@@ -1841,10 +1857,26 @@ export default function MyPage() {
   const handleShareClick = useCallback(() => {
     if (typeof window === 'undefined' || !pageUrl?.trim()) return;
     const url = `${window.location.origin}/${pageUrl.trim()}`;
-    navigator.clipboard
-      .writeText(url)
-      .then(() => showToast('Link copied!', 'success'))
-      .catch(() => showToast('Failed to copy link', 'error'));
+    const doCopy = () => {
+      const textarea = document.createElement('textarea');
+      textarea.value = url;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('Link copied!', 'success');
+      } catch {
+        showToast('Failed to copy link', 'error');
+      }
+      document.body.removeChild(textarea);
+    };
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(url).then(() => showToast('Link copied!', 'success')).catch(doCopy);
+    } else {
+      doCopy();
+    }
   }, [pageUrl, showToast]);
 
   // Show full-screen loader ONLY on initial page load.

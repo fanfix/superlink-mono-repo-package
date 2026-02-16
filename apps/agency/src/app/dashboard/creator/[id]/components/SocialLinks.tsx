@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Box } from '@mui/material';
 import { Typography, Checkbox } from '@superline/design-system';
-import { Instagram, Facebook, Twitter, YouTube } from '@mui/icons-material';
+import { getSocialIcon } from '../../socialIcons';
 import { styled } from '@mui/material/styles';
 
 const SocialLinksContainer = styled(Box)(({ theme }) => ({
@@ -48,6 +48,8 @@ const SocialIcon = styled(Box)({
   justifyContent: 'center',
   cursor: 'pointer',
   transition: 'all 0.2s ease',
+  textDecoration: 'none',
+  color: 'inherit',
   '&:hover': {
     backgroundColor: '#E0E0E0',
     transform: 'scale(1.05)'
@@ -85,14 +87,14 @@ const SettingDescription = styled(Typography)({
   lineHeight: 1.4
 });
 
+export interface SocialLinkItem {
+  name: string;
+  url?: string;
+  link?: string;
+}
+
 interface SocialLinksProps {
-  socialMedia: {
-    instagram?: string;
-    twitter?: string;
-    youtube?: string;
-    tiktok?: string;
-    facebook?: string;
-  };
+  socialLinks: SocialLinkItem[];
   agencyBranding?: boolean;
   monetization?: boolean;
   onAgencyBrandingChange?: (checked: boolean) => void;
@@ -100,57 +102,48 @@ interface SocialLinksProps {
 }
 
 export default function SocialLinks({ 
-  socialMedia, 
+  socialLinks, 
   agencyBranding = true, 
   monetization = true,
   onAgencyBrandingChange,
   onMonetizationChange 
 }: SocialLinksProps) {
-  const socialPlatforms = [
-    {
-      name: 'Instagram',
-      icon: <Instagram sx={{ fontSize: 20, color: '#000000' }} />,
-      handle: socialMedia.instagram
-    },
-    {
-      name: 'Facebook',
-      icon: <Facebook sx={{ fontSize: 20, color: '#000000' }} />,
-      handle: socialMedia.facebook
-    },
-    {
-      name: 'Twitter',
-      icon: <Twitter sx={{ fontSize: 20, color: '#000000' }} />,
-      handle: socialMedia.twitter
-    },
-    {
-      name: 'TikTok',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" fill="#000000"/>
-        </svg>
-      ),
-      handle: socialMedia.tiktok
-    },
-    {
-      name: 'YouTube',
-      icon: <YouTube sx={{ fontSize: 20, color: '#000000' }} />,
-      handle: socialMedia.youtube
-    }
-  ];
+  // Agar array khali hai to pura section hide - na icons, kuch bhi nahi
+  if (!socialLinks || socialLinks.length === 0) {
+    return null;
+  }
+
+  const linksWithUrl = socialLinks.filter(
+    (item) => (item.url || item.link || '').trim() !== ''
+  );
+  // Agar koi bhi valid link nahi to bhi kuch mat dikhao
+  if (linksWithUrl.length === 0) {
+    return null;
+  }
 
   return (
     <SocialLinksContainer>
       <SocialLinksTitle>Social Links</SocialLinksTitle>
       
       <SocialIconsContainer>
-        {socialPlatforms.map((platform) => (
-          <SocialIcon
-            key={platform.name}
-            title={platform.handle ? `${platform.name}: ${platform.handle}` : `${platform.name} not connected`}
-          >
-            {platform.icon}
-          </SocialIcon>
-        ))}
+        {linksWithUrl.map((item, index) => {
+          const linkUrl = item.url || item.link || '';
+          const platformName = item.name?.toLowerCase() || 'other';
+          const icon = getSocialIcon(platformName, 20, '#000000');
+          if (!icon) return null;
+          return (
+            <SocialIcon
+              key={`${platformName}-${index}`}
+              component="a"
+              href={linkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`${item.name}: ${linkUrl}`}
+            >
+              {icon}
+            </SocialIcon>
+          );
+        })}
       </SocialIconsContainer>
 
       <SettingsSection>

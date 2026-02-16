@@ -494,13 +494,17 @@ export default function CreatorPage() {
                 }}
               >
                 <Image
-                  src="/image 49.png"
+                  src="/assets/image 49.png"
                   alt="Card image"
                   sx={{
                     width: '100%',
                     height: '100%',
                     borderRadius: 'none !important',
                     filter: 'blur(2px)',
+                  }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (target.src.includes('/assets/')) target.src = '/image 49.png';
                   }}
                 />
                 {/* Lock Icon - Center */}
@@ -537,13 +541,17 @@ export default function CreatorPage() {
                 }}
               >
                 <Image
-                  src="/image 49.png"
+                  src="/assets/image 49.png"
                   alt="Card image"
                   sx={{
                     width: '100%',
                     height: '100%',
                     borderRadius: 'none !important',
                     filter: 'blur(2px)',
+                  }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (target.src.includes('/assets/')) target.src = '/image 49.png';
                   }}
                 />
                 {/* Lock Icon - Center */}
@@ -580,13 +588,17 @@ export default function CreatorPage() {
                 }}
               >
                 <Image
-                  src="/image 49.png"
+                  src="/assets/image 49.png"
                   alt="Card image"
                   sx={{
                     width: '100%',
                     height: '100%',
                     borderRadius: 'none !important',
                     filter: 'blur(2px)',
+                  }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (target.src.includes('/assets/')) target.src = '/image 49.png';
                   }}
                 />
                 {/* Lock Icon - Center */}

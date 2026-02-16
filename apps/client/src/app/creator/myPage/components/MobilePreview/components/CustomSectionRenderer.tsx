@@ -57,12 +57,12 @@ function getNoThumbnailPlaceholder(item: { url?: string; isEmail?: boolean }, ic
   );
 }
 
-const EMBED_SLIDER_ITEM_WIDTH = 320;
-const EMBED_SLIDER_ITEM_WIDTH_LARGE = 560;
 const EMBED_SLIDER_GAP = 4;
+/** Username page 2-cards view: smaller gap so both cards fit fully */
+const EMBED_SLIDER_GAP_COMPACT = 2;
 
 const defaultTextColor = 'var(--color-black)';
-/** Text inside cards: inherits from card (dark card → white, light card → black). */
+
 const cardTextInherit = { color: 'inherit' as const };
 
 export function CustomSectionRenderer({ section, compactLayout, textColor = defaultTextColor, isDarkBg = false, isBlackBg = false }: CustomSectionRendererProps) {
@@ -229,8 +229,8 @@ export function CustomSectionRenderer({ section, compactLayout, textColor = defa
     }
   };
 
-  // Embed sections: show embed items with EmbedMaker, non-embed items as link cards
-  if (section.sectionType === 'embeds' && section.items.length > 0) {
+  // Embed sections: show embed items with EmbedMaker, non-embed items as link cards (sectionType + isEmbed so creator & public match)
+  if ((section.sectionType === 'embeds' || section.isEmbed === true) && section.items.length > 0) {
     const embedItems = section.items.filter((item) => item.url && getEmbedPlatform(item.url));
     const nonEmbedItems = section.items.filter((item) => !item.url || !getEmbedPlatform(item.url));
 
@@ -345,18 +345,18 @@ export function CustomSectionRenderer({ section, compactLayout, textColor = defa
 
     if (section.layout === 'row' && embedItems.length > 0) {
       const sectionNameSx = [styles.customSectionName, { color: textColor }];
-      const itemStep = EMBED_SLIDER_ITEM_WIDTH + EMBED_SLIDER_GAP;
+      // Username (public) page: 2 cards per view (compactLayout), small gap so both fit. Creator: 1 card per view.
+      const cardsPerView = compactLayout ? 2 : 1;
+      const gap = compactLayout ? EMBED_SLIDER_GAP_COMPACT : EMBED_SLIDER_GAP;
+      const cardWidthPercent = cardsPerView === 2 ? `calc(50% - ${gap / 2}px)` : '100%';
       const scrollTo = (dir: 'left' | 'right') => {
         const el = embedSliderRef.current;
         if (!el) return;
-        const children = el.children;
-        if (children.length === 0) return;
-        const currentIndex = Math.round(el.scrollLeft / itemStep);
-        const nextIndex = dir === 'right' ? Math.min(currentIndex + 1, children.length - 1) : Math.max(currentIndex - 1, 0);
-        const target = children[nextIndex] as HTMLElement;
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
-        }
+        const cardWidth = (el.clientWidth - gap * (cardsPerView - 1)) / cardsPerView;
+        const step = cardWidth + gap;
+        const currentIndex = Math.round(el.scrollLeft / step);
+        const nextIndex = dir === 'right' ? Math.min(currentIndex + 1, embedItems.length - 1) : Math.max(currentIndex - 1, 0);
+        el.scrollTo({ left: nextIndex * step, behavior: 'smooth' });
       };
       return (
         <Box sx={[styles.customSection, { color: textColor }]}>
@@ -375,31 +375,35 @@ export function CustomSectionRenderer({ section, compactLayout, textColor = defa
             ref={embedSliderRef}
             sx={{
               display: 'flex',
-              gap: EMBED_SLIDER_GAP,
+              gap,
               overflowX: 'auto',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
               scrollBehavior: 'smooth',
               scrollSnapType: 'x mandatory',
+              width: '100%',
+              maxWidth: '100%',
               '&::-webkit-scrollbar': { display: 'none' },
             }}
           >
             {embedItems.map((item) => {
               const name = getEmbedPlatform(item.url!) || 'YouTube';
               const embedSize = (item.size === 'small' || item.size === 'large' ? item.size : 'small') as 'small' | 'large';
-              const cardWidth = embedSize === 'large' ? EMBED_SLIDER_ITEM_WIDTH_LARGE : EMBED_SLIDER_ITEM_WIDTH;
               return (
                 <Box
                   key={item.id}
                   sx={{
-                    minWidth: cardWidth,
-                    flexShrink: 0,
+                    flex: `0 0 ${cardWidthPercent}`,
+                    minWidth: cardWidthPercent,
+                    width: cardWidthPercent,
+                    boxSizing: 'border-box',
                     borderRadius: 'var(--border-radius-md)',
                     overflow: 'visible',
                     scrollSnapAlign: 'start',
+                    scrollSnapStop: 'always',
                     display: 'flex',
                     flexDirection: 'column',
-                    '& iframe': { display: 'block', borderRadius: 'var(--border-radius-md)' },
+                    '& iframe': { display: 'block', borderRadius: 'var(--border-radius-md)', maxWidth: '100%' },
                   }}
                 >
                   <EmbedMaker url={item.url!} name={name} size={embedSize} />
