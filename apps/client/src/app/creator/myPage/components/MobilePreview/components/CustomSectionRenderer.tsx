@@ -57,8 +57,9 @@ function getNoThumbnailPlaceholder(item: { url?: string; isEmail?: boolean }, ic
   );
 }
 
-const EMBED_SLIDER_ITEM_WIDTH = 280;
-const EMBED_SLIDER_GAP = 16;
+const EMBED_SLIDER_ITEM_WIDTH = 320;
+const EMBED_SLIDER_ITEM_WIDTH_LARGE = 560;
+const EMBED_SLIDER_GAP = 4;
 
 const defaultTextColor = 'var(--color-black)';
 /** Text inside cards: inherits from card (dark card → white, light card → black). */
@@ -240,9 +241,10 @@ export function CustomSectionRenderer({ section, compactLayout, textColor = defa
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {embedItems.map((item) => {
               const name = getEmbedPlatform(item.url!) || 'YouTube';
+              const embedSize = (item.size === 'small' || item.size === 'large' ? item.size : 'large') as 'small' | 'large';
               return (
-                <Box key={item.id} sx={{ width: '100%', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
-                  <EmbedMaker url={item.url!} name={name} size="large" />
+                <Box key={item.id} sx={{ width: '100%', borderRadius: 'var(--border-radius-md)', overflow: 'visible', '& iframe': { display: 'block', borderRadius: 'var(--border-radius-md)' } }}>
+                  <EmbedMaker url={item.url!} name={name} size={embedSize} />
                 </Box>
               );
             })}
@@ -343,21 +345,28 @@ export function CustomSectionRenderer({ section, compactLayout, textColor = defa
 
     if (section.layout === 'row' && embedItems.length > 0) {
       const sectionNameSx = [styles.customSectionName, { color: textColor }];
-      const scroll = (dir: 'left' | 'right') => {
+      const itemStep = EMBED_SLIDER_ITEM_WIDTH + EMBED_SLIDER_GAP;
+      const scrollTo = (dir: 'left' | 'right') => {
         const el = embedSliderRef.current;
         if (!el) return;
-        const step = EMBED_SLIDER_ITEM_WIDTH + EMBED_SLIDER_GAP;
-        el.scrollBy({ left: dir === 'left' ? -step : step, behavior: 'smooth' });
+        const children = el.children;
+        if (children.length === 0) return;
+        const currentIndex = Math.round(el.scrollLeft / itemStep);
+        const nextIndex = dir === 'right' ? Math.min(currentIndex + 1, children.length - 1) : Math.max(currentIndex - 1, 0);
+        const target = children[nextIndex] as HTMLElement;
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+        }
       };
       return (
         <Box sx={[styles.customSection, { color: textColor }]}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
             <Typography sx={sectionNameSx}>{section.name}</Typography>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
-              <IconButton size="small" onClick={() => scroll('left')} sx={{ bgcolor: 'var(--color-gray-100)' }}>
+              <IconButton size="small" onClick={() => scrollTo('left')} sx={{ bgcolor: 'var(--color-gray-100)' }}>
                 <ChevronLeft />
               </IconButton>
-              <IconButton size="small" onClick={() => scroll('right')} sx={{ bgcolor: 'var(--color-gray-100)' }}>
+              <IconButton size="small" onClick={() => scrollTo('right')} sx={{ bgcolor: 'var(--color-gray-100)' }}>
                 <ChevronRight />
               </IconButton>
             </Box>
@@ -371,22 +380,29 @@ export function CustomSectionRenderer({ section, compactLayout, textColor = defa
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
               scrollBehavior: 'smooth',
+              scrollSnapType: 'x mandatory',
               '&::-webkit-scrollbar': { display: 'none' },
             }}
           >
             {embedItems.map((item) => {
               const name = getEmbedPlatform(item.url!) || 'YouTube';
+              const embedSize = (item.size === 'small' || item.size === 'large' ? item.size : 'small') as 'small' | 'large';
+              const cardWidth = embedSize === 'large' ? EMBED_SLIDER_ITEM_WIDTH_LARGE : EMBED_SLIDER_ITEM_WIDTH;
               return (
                 <Box
                   key={item.id}
                   sx={{
-                    minWidth: EMBED_SLIDER_ITEM_WIDTH,
+                    minWidth: cardWidth,
                     flexShrink: 0,
                     borderRadius: 'var(--border-radius-md)',
-                    overflow: 'hidden',
+                    overflow: 'visible',
+                    scrollSnapAlign: 'start',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    '& iframe': { display: 'block', borderRadius: 'var(--border-radius-md)' },
                   }}
                 >
-                  <EmbedMaker url={item.url!} name={name} size="small" />
+                  <EmbedMaker url={item.url!} name={name} size={embedSize} />
                 </Box>
               );
             })}

@@ -19,6 +19,8 @@ export interface UploadContentModalProps {
   onAdd: (data: UploadContentData) => void;
   onUpdate?: (id: string, data: UploadContentData) => void;
   onDelete?: (id: string) => void;
+  /** When true (e.g. exclusive content), title color picker is hidden */
+  hideTitleColor?: boolean;
   editingContent?: {
     id: string;
     title: string;

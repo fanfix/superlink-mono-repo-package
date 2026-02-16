@@ -216,6 +216,12 @@ export default function CreatorProfileHeader({
   onDuplicate
 }: CreatorProfileHeaderProps) {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [profileImageError, setProfileImageError] = useState(false);
+  const DEFAULT_AVATAR_SRC = '/assets/default-avatar.svg';
+  const avatarSrc =
+    profileImageError
+      ? DEFAULT_AVATAR_SRC
+      : (creator.profileImage || creator.assignedAvatar || DEFAULT_AVATAR_SRC);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -280,8 +286,9 @@ export default function CreatorProfileHeader({
       {/* Left side - Avatar, Name, Email, Tag */}
       <ProfileInfo>
         <ProfileImage
-          src={creator.profileImage || creator.assignedAvatar || '/assets/default-avatar.svg'}
+          src={avatarSrc}
           alt={creator.name}
+          onError={() => setProfileImageError(true)}
         />
         <ProfileDetails>
           <NameRow>

@@ -53,7 +53,8 @@ import {
 } from '../../../hooks';
 import { useUploadFile } from '../../../hooks';
 import { reorderEngagementsApi, reorderBrandKitItemsApi } from '../../../api/services/brandKitService';
-import { Toast } from '@superline/design-system';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
+import { Toast, Button } from '@superline/design-system';
 import {
   DndContext,
   closestCenter,
@@ -160,6 +161,11 @@ export default function MyPage() {
   // Order of sections within CustomSectionsEmbeds (includes 'exclusive-content' and custom section IDs)
   const [customSectionsOrder, setCustomSectionsOrder] = useState<string[]>(['exclusive-content']);
   
+  // Mobile: floating button toggles preview visibility
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
+
   // Custom buttons state
   const [customButtons, setCustomButtons] = useState<Array<{
     id: string;
@@ -277,7 +283,9 @@ export default function MyPage() {
                 name: section.name,
                 layout: section.rowMode === 'parallel_row' ? 'parallel-row' : section.rowMode === 'slider' ? 'row' : 'list',
                 useContentImageAsBackground: false,
-                sectionType: section.sectionType,
+                // Ensure embed sections always have sectionType 'embeds' so "Add Embed" shows and embed modal opens
+                sectionType: (section.sectionType ?? (section.isEmbed ? 'embeds' : 'links')) as CustomSection['sectionType'],
+                isEmbed: !!section.isEmbed,
                 items: (section.sectionLinks || []).map((link) => ({
                   id: link.id,
                   title: link.name,
@@ -566,6 +574,8 @@ export default function MyPage() {
           layout,
           useContentImageAsBackground,
           items: [],
+          sectionType,
+          isEmbed: sectionType === 'embeds',
         };
         setCustomSections((prev) => [...prev, newSection]);
         setCustomSectionsOrder((prev) => [...prev, newSection.id]);
@@ -583,7 +593,7 @@ export default function MyPage() {
   const handleUpdateCustomSection = useCallback(async (id: string, sectionName: string, layout: 'list' | 'row' | 'parallel-row', useContentImageAsBackground: boolean) => {
     // Find the section to determine if it's an embed section
     const section = customSections.find((s) => s.id === id);
-    const isEmbed = section?.sectionType === 'embeds';
+    const isEmbed = section?.sectionType === 'embeds' || section?.isEmbed === true;
     
     try {
       const isRow = layout === 'row' || layout === 'parallel-row';
@@ -614,7 +624,7 @@ export default function MyPage() {
   const handleDeleteCustomSection = useCallback(async (id: string) => {
     // Find the section to determine if it's an embed section
     const section = customSections.find((s) => s.id === id);
-    const isEmbedSection = section?.sectionType === 'embeds';
+    const isEmbedSection = section?.sectionType === 'embeds' || section?.isEmbed === true;
     
     try {
       await removeCustomSection(id);
@@ -1828,6 +1838,15 @@ export default function MyPage() {
     icon: getSocialIconMono(link.platform, 16),
   }));
 
+  const handleShareClick = useCallback(() => {
+    if (typeof window === 'undefined' || !pageUrl?.trim()) return;
+    const url = `${window.location.origin}/${pageUrl.trim()}`;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => showToast('Link copied!', 'success'))
+      .catch(() => showToast('Failed to copy link', 'error'));
+  }, [pageUrl, showToast]);
+
   // Show full-screen loader ONLY on initial page load.
   // Do not block UI for background refetches (e.g., after updates) because that causes loader flashes.
   if (isLoadingData) {
@@ -1942,7 +1961,19 @@ export default function MyPage() {
           </LeftPanelContent>
         </LeftPanel>
 
-        <RightPanel>
+        <RightPanel
+          sx={{
+            ...(isMobile && !mobilePreviewOpen && { display: 'none' }),
+            ...(isMobile && mobilePreviewOpen && {
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              maxWidth: '100%',
+              height: '100%',
+              padding: 'var(--padding-md)',
+            }),
+          }}
+        >
           <MobilePreview
             pageName={pageName}
             coverImage={coverImage}
@@ -1965,9 +1996,34 @@ export default function MyPage() {
             engagements={engagements}
             pricing={pricing}
             customButtons={customButtons}
+            onShareClick={handleShareClick}
           />
         </RightPanel>
       </ContentContainer>
+
+      {/* Mobile: floating button to show/hide preview */}
+      {isMobile && (
+        <Button
+          variant="primary-dark"
+          onClick={() => setMobilePreviewOpen((p) => !p)}
+          sx={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            zIndex: 10000,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            borderRadius: 'var(--border-radius-2xl)',
+            padding: 'var(--padding-md) var(--padding-lg)',
+            fontSize: 'var(--font-size-sm)',
+            fontWeight: 'var(--font-weight-semibold)',
+            textTransform: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {mobilePreviewOpen ? 'Hide Mobile Preview' : 'Show Mobile Preview'}
+        </Button>
+      )}
+
       <Toast
         message={toast.message}
         type={toast.type}

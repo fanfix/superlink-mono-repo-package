@@ -129,6 +129,8 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   },
 }));
 
+const DEFAULT_AVATAR_SRC = "/assets/default-avatar.svg";
+
 const UserAvatar = styled("div")(({ theme }) => ({
   width: "var(--image-size-sm)",
   height: "var(--image-size-sm)",
@@ -140,6 +142,7 @@ const UserAvatar = styled("div")(({ theme }) => ({
   marginRight: "var(--avatar-margin-right)",
   verticalAlign: "middle",
   flexShrink: 0,
+  overflow: "hidden",
 }));
 
 const UserInfo = styled("div")(({ theme }) => ({
@@ -268,14 +271,14 @@ export const Table = ({
     if (column.id === "name") {
       return (
         <UserInfo>
-          <UserAvatar 
-            style={{ 
-              backgroundImage: row.avatar 
-                ? `url(${row.avatar})` 
-                : `url(/assets/default-avatar.svg)`,
-              backgroundColor: row.avatar ? "transparent" : "#E2E8F0"
-            }} 
-          />
+          <UserAvatar style={{ backgroundColor: row.avatar ? "transparent" : "#E2E8F0" }}>
+            <img
+              src={row.avatar || DEFAULT_AVATAR_SRC}
+              alt=""
+              onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR_SRC; }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "var(--border-radius-full)", display: "block" }}
+            />
+          </UserAvatar>
           <UserName>{value}</UserName>
         </UserInfo>
       );
@@ -287,14 +290,14 @@ export const Table = ({
 
     if (column.id === "assignedTo") {
       return (
-        <UserAvatar 
-          style={{ 
-            backgroundImage: row.assignedAvatar 
-              ? `url(${row.assignedAvatar})` 
-              : `url(/assets/default-avatar.svg)`,
-            backgroundColor: row.assignedAvatar ? "transparent" : "#E2E8F0"
-          }} 
-        />
+        <UserAvatar style={{ backgroundColor: row.assignedAvatar ? "transparent" : "#E2E8F0" }}>
+          <img
+            src={row.assignedAvatar || DEFAULT_AVATAR_SRC}
+            alt=""
+            onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR_SRC; }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "var(--border-radius-full)", display: "block" }}
+          />
+        </UserAvatar>
       );
     }
 

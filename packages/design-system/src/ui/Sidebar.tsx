@@ -153,6 +153,18 @@ export const Sidebar: FC<SidebarProps> = ({
   const [activeItem, setActiveItem] = useState<string | null>(
     items.find(item => item.active)?.id || null
   );
+  const DEFAULT_FOOTER_ICON = '/black_footer_icon.png';
+  const [footerIconError, setFooterIconError] = useState(false);
+  const [topLogoError, setTopLogoError] = useState(false);
+  const sidebarFooterIconSrc =
+    footerIconError || !companyLogoIcon || (typeof companyLogoIcon === 'string' && companyLogoIcon.trim() === '')
+      ? DEFAULT_FOOTER_ICON
+      : companyLogoIcon;
+  const sidebarTopLogoSrc =
+    topLogoError || !topLogo
+      ? (companyLogoIcon && !footerIconError ? companyLogoIcon : DEFAULT_FOOTER_ICON)
+      : topLogo;
+  const showTopLogo = topLogo || topLogoError;
 
   // Sync activeItem state with items prop when items change
   useEffect(() => {
@@ -187,9 +199,9 @@ export const Sidebar: FC<SidebarProps> = ({
     <StyledSidebar variant={variant} sx={sidebarStyles}>
       {/* Top Logo Area */}
       <LogoArea>
-        {topLogo && (
+        {showTopLogo && (
           <Image
-            src={topLogo}
+            src={sidebarTopLogoSrc}
             alt={topLogoAlt}
             variant="rounded-sm"
             size="md"
@@ -201,6 +213,7 @@ export const Sidebar: FC<SidebarProps> = ({
               maxHeight: '100%',
               objectFit: 'contain',
             }}
+            onError={() => setTopLogoError(true)}
           />
         )}
       </LogoArea>
@@ -247,16 +260,17 @@ export const Sidebar: FC<SidebarProps> = ({
 
       {/* Bottom Company Logo */}
       <CompanyLogoArea>
-        {companyLogoIcon && (
+        {(companyLogoIcon || footerIconError) && (
           <CompanyLogoIcon>
             <Image
-              src={companyLogoIcon}
+              src={sidebarFooterIconSrc}
               alt={companyLogoAlt || 'Company Logo'}
               variant="rounded-sm"
               size="sm"
               width="24px"
               height="24px"
               objectFit="contain"
+              onError={() => setFooterIconError(true)}
             />
           </CompanyLogoIcon>
         )}

@@ -3,6 +3,7 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import { Toast } from '@superline/design-system';
 import MobilePreview from '../creator/myPage/components/MobilePreview';
 import type {
   ContentItem,
@@ -130,6 +131,7 @@ function buildPreviewProps(
     backgroundImageBlur: bio.backgroundImageBlur ?? 0,
     backgroundImageAppearance: 'light' as const,
     selectedFont: bio.pageFont || 'Inter',
+    selectedTitleColor: bio.titleColor || 'var(--color-mypage-text-black)',
     selectedTextColor: bio.textColor || 'var(--color-mypage-text-black)',
     contentItems: [] as ContentItem[],
     customButtons,
@@ -194,6 +196,11 @@ export default function PublicProfilePage() {
   const { isAuthenticated } = useAuth();
   const [replicationWarningOpen, setReplicationWarningOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'; visible: boolean }>({
+    message: '',
+    type: 'success',
+    visible: false,
+  });
 
   useEffect(() => {
     if (username) fetchUser(username);
@@ -218,6 +225,21 @@ export default function PublicProfilePage() {
   const closeReplicationWarning = useCallback(() => setReplicationWarningOpen(false), []);
   const closeLoginModal = useCallback(() => setLoginModalOpen(false), []);
 
+  const handleShareClick = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const url = window.location.href;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setToast({ message: 'Link copied!', type: 'success', visible: true });
+        setTimeout(() => setToast((p) => ({ ...p, visible: false })), 2000);
+      })
+      .catch(() => {
+        setToast({ message: 'Failed to copy link', type: 'error', visible: true });
+        setTimeout(() => setToast((p) => ({ ...p, visible: false })), 2000);
+      });
+  }, []);
+
   // Early exits: invalid URL, loading, error, no content
   if (!username) {
     return (
@@ -226,17 +248,18 @@ export default function PublicProfilePage() {
       </Box>
     );
   }
-  if (loading && !user) {
+  // Show loading when waiting for first fetch (avoid "not found" flash before data loads)
+  if (!user) {
+    if (error) {
+      return (
+        <Box sx={layoutStyles.centeredMessage}>
+          <Typography color="error">Profile not found or failed to load.</Typography>
+        </Box>
+      );
+    }
     return (
       <Box sx={layoutStyles.centeredMessage}>
         <CircularProgress />
-      </Box>
-    );
-  }
-  if (error || !user) {
-    return (
-      <Box sx={layoutStyles.centeredMessage}>
-        <Typography color="error">Profile not found or failed to load.</Typography>
       </Box>
     );
   }
@@ -259,11 +282,19 @@ export default function PublicProfilePage() {
             showCreateOwnPageLink
             onCreateOwnPageClick={() => router.push('/signup')}
             compactSectionLayout
+            onShareClick={handleShareClick}
           />
         </Box>
       </Box>
       <ReplicationWarningModal open={replicationWarningOpen} onClose={closeReplicationWarning} />
       <LoginModal open={loginModalOpen} onClose={closeLoginModal} onContinue={handleLoginContinue} />
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        visible={toast.visible}
+        onClose={() => setToast((p) => ({ ...p, visible: false }))}
+        position="top-center"
+      />
     </>
   );
 }

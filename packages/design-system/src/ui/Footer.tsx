@@ -1,4 +1,4 @@
-import React, { FC, ReactElement } from 'react';
+import React, { FC, ReactElement, useState } from 'react';
 import { Box, IconButton } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Icon } from './Icon';
@@ -147,6 +147,16 @@ export const Footer: FC<FooterProps> = ({
     }
   };
 
+  const DEFAULT_FOOTER_ICON_DARK = '/footer_icon.png';
+  const DEFAULT_FOOTER_ICON_LIGHT = '/black_footer_icon.png';
+  const [footerIconError, setFooterIconError] = useState(false);
+  const footerIconSrc =
+    footerIconError || !variant
+      ? DEFAULT_FOOTER_ICON_LIGHT
+      : variant === 'dark'
+        ? DEFAULT_FOOTER_ICON_DARK
+        : DEFAULT_FOOTER_ICON_LIGHT;
+
   return (
     <StyledFooter variant={variant} sx={footerStyles}>
       {/* Left Section - Company Branding */}
@@ -154,13 +164,14 @@ export const Footer: FC<FooterProps> = ({
         <CompanyLogoContainer>
           <CompanyLogoIcon>
             <Image
-              src={variant === 'dark' ? 'public/footer_icon.png' : 'public/black_footer_icon.png'}
+              src={footerIconSrc}
               alt={'Company Logo'}
               variant="rounded-sm"
               size="sm"
               width="24px"
               height="24px"
               objectFit="contain"
+              onError={() => setFooterIconError(true)}
             />
           </CompanyLogoIcon>
           <CompanyName footerVariant={variant}>

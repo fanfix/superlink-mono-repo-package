@@ -78,32 +78,29 @@ WORKDIR /app
 RUN groupadd --gid 1001 nodejs \
  && useradd --uid 1001 --gid 1001 --shell /bin/bash nextjs
 
-# Copy built files from builder for all three apps
-# Next.js standalone output: .next/standalone contains the minimal server files
-# Each standalone includes apps/{service}/server.js and shared node_modules
+# Copy built files from builder: each app runs from its own directory so it has
+# its own node_modules (merging standalones into one dir left only client's deps).
+# Standalone layout: .next/standalone/ contains apps/{service}/server.js + node_modules
 
-# Copy all public directories
-COPY --from=builder /app/apps/admin/public ./apps/admin/public
-COPY --from=builder /app/apps/agency/public ./apps/agency/public
-COPY --from=builder /app/apps/client/public ./apps/client/public
+# Admin: standalone + public + static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/standalone/. ./run-admin/
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/public ./run-admin/apps/admin/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/static ./run-admin/apps/admin/.next/static
 
-# Copy standalone outputs (they will merge, with later ones taking precedence for shared files)
-# Each standalone contains apps/{service}/server.js and necessary node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/standalone/. ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/agency/.next/standalone/. ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/client/.next/standalone/. ./
+# Agency: standalone + public + static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/agency/.next/standalone/. ./run-agency/
+COPY --from=builder --chown=nextjs:nodejs /app/apps/agency/public ./run-agency/apps/agency/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/agency/.next/static ./run-agency/apps/agency/.next/static
 
-# Copy static files for each app
-COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/static ./apps/admin/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/agency/.next/static ./apps/agency/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/client/.next/static ./apps/client/.next/static
+# Client: standalone + public + static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/client/.next/standalone/. ./run-client/
+COPY --from=builder --chown=nextjs:nodejs /app/apps/client/public ./run-client/apps/client/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/client/.next/static ./run-client/apps/client/.next/static
 
-# Copy router script
+# Copy router script (runs from /app, starts each app from run-* with its own node_modules)
 COPY --chown=nextjs:nodejs router.js ./
 
-# Prepare .next folders for prerender cache
-RUN mkdir -p apps/admin/.next apps/agency/.next apps/client/.next \
- && chown -R nextjs:nodejs apps/
+RUN chown -R nextjs:nodejs run-admin run-agency run-client
 
 USER nextjs
 

@@ -19,6 +19,8 @@ export interface CustomSection {
   useContentImageAsBackground: boolean;
   items: ContentItem[];
   sectionType?: 'links' | 'embeds' | 'email' | 'text' | 'unlock_content' | 'brand_kit';
+  /** From API: true when section is embed type (fallback when sectionType is missing) */
+  isEmbed?: boolean;
   /** Section-level content (e.g. for parallel-row), saved to DB when provided */
   sectionContent?: string;
 }
@@ -94,4 +96,6 @@ export interface MobilePreviewProps {
   onCreateOwnPageClick?: () => void;
   /** When true (e.g. public username page), sections use compact layout (3 cols, smaller gap/size). Mypage keeps default. */
   compactSectionLayout?: boolean;
+  /** Called when share icon is clicked (e.g. copy URL to clipboard). When provided, share button is clickable. */
+  onShareClick?: () => void;
 }

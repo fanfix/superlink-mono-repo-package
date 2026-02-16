@@ -162,6 +162,7 @@ export default function ExclusiveContentSection({
         open={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onAdd={handleUploadComplete}
+        hideTitleColor
       />
 
       <VerifiedCreatorModal

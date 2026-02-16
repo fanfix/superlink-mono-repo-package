@@ -13,6 +13,7 @@ export const styles = {
     cursor: 'grab' as const,
     userSelect: 'none' as const,
     scrollBehavior: 'smooth' as const,
+    scrollSnapType: 'x mandatory' as const,
     '&::-webkit-scrollbar': {
       display: 'none',
     },
@@ -29,6 +30,7 @@ export const styles = {
     minWidth: 'var(--width-card-min)',
     flexShrink: 0,
     backdropFilter: 'blur(10px)',
+    scrollSnapAlign: 'start' as const,
   } as SxProps<Theme>,
 
   unlockHeader: {

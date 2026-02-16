@@ -43,6 +43,7 @@ export default function TeamsPage() {
   const [creatorOptions, setCreatorOptions] = useState<CreatorOption[]>([]);
   const [selectedCreators, setSelectedCreators] = useState<CreatorOption[]>([]);
   const [formErrors, setFormErrors] = useState<{ name?: string; email?: string }>({});
+  const [optionAvatarErrors, setOptionAvatarErrors] = useState<Set<string>>(new Set());
 
   // Fetch teams when component mounts and agencyId is available (only once)
   useEffect(() => {
@@ -885,16 +886,23 @@ export default function TeamsPage() {
                 selectedCreators.length >= 4 &&
                 !selectedCreators.some((creator) => creator.bioId === option.bioId)
               }
-              renderOption={(props, option, { selected }) => (
+              renderOption={(props, option, { selected }) => {
+                const useDefaultAvatar =
+                  optionAvatarErrors.has(option.bioId) ||
+                  !option.imageURL ||
+                  (typeof option.imageURL === 'string' && option.imageURL.trim() === '');
+                const optionAvatarSrc = useDefaultAvatar ? DEFAULT_AVATAR : (option.imageURL || DEFAULT_AVATAR);
+                return (
                 <li {...props} key={option.bioId}>
                   <Box sx={creatorOptionContainerStyles}>
                     <Box sx={creatorOptionAvatarStyles}>
                       <Image
-                        src={option.imageURL || DEFAULT_AVATAR}
+                        src={optionAvatarSrc}
                         alt={option.name}
                         width="32px"
                         height="32px"
                         sx={imageCoverStyles}
+                        onError={() => setOptionAvatarErrors(prev => new Set(prev).add(option.bioId))}
                       />
                     </Box>
                     <Typography variant='text-md' sx={{ color: 'var(--color-black-secondary)' }}>
@@ -902,7 +910,7 @@ export default function TeamsPage() {
                     </Typography>
                   </Box>
                 </li>
-              )}
+              ); }}
               renderInput={(params) => (
                 <MuiTextField
                   {...params}

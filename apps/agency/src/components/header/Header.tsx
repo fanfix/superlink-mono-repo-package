@@ -38,10 +38,17 @@ interface HeaderProps {
   onMenuClick?: () => void;
 }
 
+const DEFAULT_NAVBAR_ICON = '/navbar_icon.png';
+
 export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [avatarImageError, setAvatarImageError] = useState(false);
   const { profile } = useProfileApi();
-  const avatarSrc = profile?.imageURL || '/navbar_icon.png';
+  const profileImage = profile?.imageURL;
+  const avatarSrc =
+    avatarImageError || !profileImage || (typeof profileImage === 'string' && profileImage.trim() === '')
+      ? DEFAULT_NAVBAR_ICON
+      : profileImage;
 
   const handleCreateColorClick = () => {
     setIsModalOpen(true);
@@ -61,6 +68,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             variant="rounded-full"
             width="40px"
             height="40px"
+            onError={() => setAvatarImageError(true)}
           />
           <StatusIndicator />
         </UserAvatarContainer>

@@ -19,32 +19,33 @@ const ADMIN_PORT = 3001;
 const AGENCY_PORT = 3002;
 const CLIENT_PORT = 3003;
 
-// Helper to start a server with error handling
-const startServer = (name, serverPath, port) => {
-  console.log(`Starting ${name} server at ${serverPath} on port ${port}...`);
-  
-  // Check if server file exists
+// Each app runs from its own directory (run-*) so it uses its own node_modules
+const RUN_ADMIN = path.join(__dirname, 'run-admin');
+const RUN_AGENCY = path.join(__dirname, 'run-agency');
+const RUN_CLIENT = path.join(__dirname, 'run-client');
+
+// Helper to start a server with error handling (cwd = app dir so node_modules resolve)
+const startServer = (name, serverPath, port, cwd) => {
+  console.log(`Starting ${name} server at ${serverPath} on port ${port} (cwd: ${cwd})...`);
+
   if (!fs.existsSync(serverPath)) {
     console.error(`ERROR: ${name} server file not found at ${serverPath}`);
     console.error(`Current working directory: ${__dirname}`);
-    console.error(`Looking for: ${path.resolve(serverPath)}`);
     process.exit(1);
   }
-  
   console.log(`✓ ${name} server file found`);
-  
-  // Set basePath environment variable for each app
+
   const basePathEnv = name === 'Admin' ? '/admin' : name === 'Agency' ? '/agency' : '';
-  const serverEnv = { 
-    ...process.env, 
-    PORT: port, 
+  const serverEnv = {
+    ...process.env,
+    PORT: String(port),
     HOSTNAME: '127.0.0.1',
     NEXT_PUBLIC_BASE_PATH: basePathEnv
   };
-  
+
   const server = spawn('node', [serverPath], {
     env: serverEnv,
-    cwd: __dirname,
+    cwd: cwd || __dirname,
     stdio: 'inherit'
   });
 
@@ -63,22 +64,19 @@ const startServer = (name, serverPath, port) => {
   return server;
 };
 
-// Start admin server (standalone structure: apps/admin/server.js)
-const adminServerPath = path.join(__dirname, 'apps', 'admin', 'server.js');
-console.log(`Admin server path: ${adminServerPath}`);
-const adminServer = startServer('Admin', adminServerPath, ADMIN_PORT);
+// Start each app from its run-* directory (own node_modules)
+const adminServerPath = path.join(RUN_ADMIN, 'apps', 'admin', 'server.js');
+const agencyServerPath = path.join(RUN_AGENCY, 'apps', 'agency', 'server.js');
+const clientServerPath = path.join(RUN_CLIENT, 'apps', 'client', 'server.js');
 
-// Start agency server (standalone structure: apps/agency/server.js)
-const agencyServerPath = path.join(__dirname, 'apps', 'agency', 'server.js');
-console.log(`Agency server path: ${agencyServerPath}`);
-const agencyServer = startServer('Agency', agencyServerPath, AGENCY_PORT);
+console.log(`Admin server: ${adminServerPath}`);
+const adminServer = startServer('Admin', adminServerPath, ADMIN_PORT, RUN_ADMIN);
 
-// Start client server (standalone structure: apps/client/server.js)
-// CRITICAL: Client server handles root path (/), must start successfully
-const clientServerPath = path.join(__dirname, 'apps', 'client', 'server.js');
-console.log(`🔵 Client server path: ${clientServerPath}`);
-console.log(`🔵 Client server will handle root path (/) and all non-admin/agency routes`);
-const clientServer = startServer('Client', clientServerPath, CLIENT_PORT);
+console.log(`Agency server: ${agencyServerPath}`);
+const agencyServer = startServer('Agency', agencyServerPath, AGENCY_PORT, RUN_AGENCY);
+
+console.log(`Client server: ${clientServerPath} (handles root /)`);
+const clientServer = startServer('Client', clientServerPath, CLIENT_PORT, RUN_CLIENT);
 
 // Wait for servers to be ready with timeout
 const waitForServer = (port, name, maxAttempts = 60) => {

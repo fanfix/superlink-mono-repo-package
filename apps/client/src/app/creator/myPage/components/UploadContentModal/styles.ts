@@ -49,7 +49,8 @@ export const styles = {
     },
   } as SxProps<Theme>,
 
-  titleInput: (titleColor: string) => ({
+  /** Title input: neutral color only. Chosen title color shows on image preview above, not here. */
+  titleInput: () => ({
     width: '100%',
     '& .MuiOutlinedInput-input': {
       paddingTop: 'var(--padding-md)',
@@ -57,7 +58,7 @@ export const styles = {
       paddingLeft: 'var(--padding-mypage-2xl)',
       paddingRight: 'var(--padding-mypage-9xl)',
       fontSize: 'var(--font-size-md-1)',
-      color: titleColor,
+      color: 'var(--color-black)',
     },
     '& .MuiOutlinedInput-notchedOutline': {
       borderColor: 'var(--color-gray-200)',

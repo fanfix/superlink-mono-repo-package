@@ -14,6 +14,8 @@ interface TitleInputProps {
   onColorChange: (color: string) => void;
   onEmojiClick: (emoji: EmojiClickData) => void;
   onToggleEmojiPicker: () => void;
+  /** When true, hide the title color picker (e.g. for exclusive content) */
+  showColorPicker?: boolean;
 }
 
 export const TitleInput: React.FC<TitleInputProps> = ({
@@ -25,6 +27,7 @@ export const TitleInput: React.FC<TitleInputProps> = ({
   onColorChange,
   onToggleEmojiPicker,
   onEmojiClick,
+  showColorPicker = true,
 }) => {
   const inputWrapperStyles = {
     position: 'relative',
@@ -60,7 +63,7 @@ export const TitleInput: React.FC<TitleInputProps> = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Title"
-          sx={styles.titleInput(color)}
+          sx={styles.titleInput()}
           fullWidth
         />
         <Box sx={iconButtonsContainerStyles}>
@@ -85,35 +88,37 @@ export const TitleInput: React.FC<TitleInputProps> = ({
               </Box>
             )}
           </Box>
-          <Box sx={styles.colorPickerWrapper}>
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                colorPickerRef.current?.click();
-              }}
-              sx={styles.emojiButton(false)}
-            >
-              <FormatColorFill sx={styles.colorIcon} />
-            </IconButton>
-            <input
-              ref={colorPickerRef}
-              type="color"
-              value={color}
-              onChange={(e) => onColorChange(e.target.value)}
-              style={{
-                position: 'absolute',
-                opacity: 0,
-                width: '24px',
-                height: '24px',
-                cursor: 'pointer',
-                zIndex: 11,
-                top: 0,
-                left: 0,
-              }}
-            />
-          </Box>
+          {showColorPicker && (
+            <Box sx={styles.colorPickerWrapper}>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  colorPickerRef.current?.click();
+                }}
+                sx={styles.emojiButton(false)}
+              >
+                <FormatColorFill sx={styles.colorIcon} />
+              </IconButton>
+              <input
+                ref={colorPickerRef}
+                type="color"
+                value={color}
+                onChange={(e) => onColorChange(e.target.value)}
+                style={{
+                  position: 'absolute',
+                  opacity: 0,
+                  width: '24px',
+                  height: '24px',
+                  cursor: 'pointer',
+                  zIndex: 11,
+                  top: 0,
+                  left: 0,
+                }}
+              />
+            </Box>
+          )}
         </Box>
       </Box>
     </Box>

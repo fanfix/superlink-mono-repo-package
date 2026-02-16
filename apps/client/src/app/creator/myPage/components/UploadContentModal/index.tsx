@@ -12,7 +12,7 @@ import { TitleInput } from './TitleInput';
 import { CropModal } from './CropModal';
 import type { Area } from 'react-easy-crop';
 
-export default function UploadContentModal({ open, onClose, onAdd, onUpdate, onDelete, editingContent }: UploadContentModalProps) {
+export default function UploadContentModal({ open, onClose, onAdd, onUpdate, onDelete, hideTitleColor, editingContent }: UploadContentModalProps) {
   // Form state
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
@@ -363,6 +363,7 @@ export default function UploadContentModal({ open, onClose, onAdd, onUpdate, onD
             onColorChange={setTitleColor}
             onEmojiClick={handleEmojiClick}
             onToggleEmojiPicker={() => setShowEmojiPicker(!showEmojiPicker)}
+            showColorPicker={!hideTitleColor}
           />
 
           {/* Price Input */}

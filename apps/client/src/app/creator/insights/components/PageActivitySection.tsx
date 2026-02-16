@@ -46,15 +46,21 @@ export default function PageActivitySection({
   const values = chartData.map((point) => point.value);
   const minVal = values.length ? Math.min(...values) : 0;
   const maxVal = values.length ? Math.max(...values) : 1;
-  const padding = (maxVal - minVal || 1) * 0.25;
+  const padding = Math.max((maxVal - minVal || 1) * 0.25, 0.1);
   const computedMinRaw = selectedMetric === 'ctr' ? Math.max(0, minVal - padding) : Math.max(0, minVal - padding);
   const computedMaxRaw = maxVal + padding;
   const computedMin = Number.isFinite(computedMinRaw) ? computedMinRaw : 0;
   const computedMax =
     Number.isFinite(computedMaxRaw) && computedMaxRaw > computedMin ? computedMaxRaw : computedMin + 1;
 
-  const yAxisFormatter = (value: number) =>
-    selectedMetric === 'ctr' ? `${Math.round(value)}%` : Math.round(value).toString();
+  const yAxisFormatter = (value: number) => {
+    if (selectedMetric === 'ctr') {
+      return value >= 1 || value === 0 ? `${Math.round(value)}%` : `${value.toFixed(1)}%`;
+    }
+    return computedMax - computedMin <= 1 && computedMax <= 10
+      ? value % 1 === 0 ? value.toString() : value.toFixed(1)
+      : Math.round(value).toString();
+  };
 
 // Style variables
 const scrollContainerStyles = {
@@ -125,7 +131,13 @@ const metricsContainerStyles = {
         </Box>
 
         <Box sx={scrollContainerStyles}>
-          <Box sx={{ minWidth: 'var(--width-chart-min)' }}>
+          <Box
+            sx={{
+              minWidth: chartData.length > 1
+                ? Math.max(600, chartData.length * 72)
+                : 'var(--width-chart-min)',
+            }}
+          >
             <DotGraph
               data={chartData}
               minValue={computedMin}

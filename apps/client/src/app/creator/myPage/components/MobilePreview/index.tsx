@@ -39,6 +39,7 @@ export default function MobilePreview({
   showCreateOwnPageLink = false,
   onCreateOwnPageClick,
   compactSectionLayout = false,
+  onShareClick,
 }: MobilePreviewProps) {
   const selectedFontData = fontsData.fonts.find((f) => f.value === selectedFont) || fontsData.fonts[0];
 
@@ -110,7 +111,16 @@ export default function MobilePreview({
             )}
 
             {/* Share Button - Top Right */}
-            <Box sx={styles.shareButton}>
+            <Box
+              component="button"
+              type="button"
+              sx={[
+                styles.shareButton,
+                !onShareClick && { cursor: 'default', pointerEvents: 'none' as const },
+              ]}
+              onClick={onShareClick}
+              aria-label="Share link"
+            >
               <ShareIconSvg sx={styles.shareIcon} />
             </Box>
 

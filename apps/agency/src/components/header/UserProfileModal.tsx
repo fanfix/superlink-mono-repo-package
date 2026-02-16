@@ -166,6 +166,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
   const { profile } = useProfileApi();
   const [isVisible, setIsVisible] = useState(false);
   const [activeItem, setActiveItem] = useState<string | null>(null);
+  const [avatarImageError, setAvatarImageError] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -212,6 +213,14 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
 
   if (!isOpen) return null;
 
+  const DEFAULT_NAVBAR_ICON = '/navbar_icon.png';
+  const profileImageUrl = profile?.imageURL || user?.avatar || user?.imageURL;
+  const useNavbarIcon =
+    avatarImageError ||
+    !profileImageUrl ||
+    (typeof profileImageUrl === 'string' && profileImageUrl.trim() === '');
+  const modalAvatarSrc = useNavbarIcon ? DEFAULT_NAVBAR_ICON : profileImageUrl;
+
   return (
     <ModalBackdrop open={isOpen} onClick={onClose}>
       <ModalContainer
@@ -222,11 +231,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
         <UserInfoSection>
           <AvatarContainer>
             <Image
-              src={profile?.imageURL || user?.avatar || user?.imageURL || '/navbar_icon.png'}
+              src={modalAvatarSrc}
               alt="User Profile"
               variant="rounded-full"
               width="40px"
               height="40px"
+              onError={() => setAvatarImageError(true)}
             />
             <StatusDot />
           </AvatarContainer>

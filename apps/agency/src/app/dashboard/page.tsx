@@ -106,6 +106,8 @@ export default function Dashboard() {
   // Pagination state for recent activities
   const [currentActivityPage, setCurrentActivityPage] = useState<number>(1);
   const itemsPerPage = 5; // Number of activities to show per page
+  const DEFAULT_ACTIVITY_ICON = '/navbar_icon.png';
+  const [activityImageErrors, setActivityImageErrors] = useState<Set<string>>(new Set());
   const totalActivityPages = Math.ceil(recentActivities.length / itemsPerPage);
   const startIndex = (currentActivityPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -1474,10 +1476,15 @@ export default function Dashboard() {
 
           {/* Activity List */}
           <Box sx={activityListStyles}>
-            {paginatedActivities.length > 0 ? paginatedActivities.map((activity, index) => (
-              <Box key={activity.id || `${startIndex + index}`} sx={activityItemStyles}>
+            {paginatedActivities.length > 0 ? paginatedActivities.map((activity, index) => {
+              const activityKey = activity.id || `activity-${startIndex + index}`;
+              const backendImage = activity.profileImage || activity.imageURL;
+              const useFallback = activityImageErrors.has(activityKey) || !backendImage || (typeof backendImage === 'string' && backendImage.trim() === '');
+              const imageSrc = useFallback ? DEFAULT_ACTIVITY_ICON : (backendImage as string);
+              return (
+              <Box key={activityKey} sx={activityItemStyles}>
                 <Image
-                  src={activity.profileImage || activity.imageURL || '/navbar_icon.png'}
+                  src={imageSrc}
                   alt="Profile"
                   variant="rounded-full"
                   width="var(--width-avatar-md)"
@@ -1485,6 +1492,9 @@ export default function Dashboard() {
                   sx={activityImageStyles}
                   className=""
                   onClick={() => {}}
+                  onError={() => {
+                    setActivityImageErrors((prev) => new Set(prev).add(activityKey));
+                  }}
                 />
                 <Box sx={activityContentStyles}>
                   <Typography
@@ -1501,7 +1511,7 @@ export default function Dashboard() {
                   </Typography>
                 </Box>
               </Box>
-            )) : (
+            ); }) : (
               <Typography 
                 variant="text-sm" 
                 sx={noActivitiesStyles}

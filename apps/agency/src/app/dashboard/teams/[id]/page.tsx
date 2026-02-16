@@ -42,6 +42,7 @@ function TeamMemberDetailContent() {
   const [selectedCreators, setSelectedCreators] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [removingCreatorId, setRemovingCreatorId] = useState<string | null>(null);
+  const [creatorAvatarErrors, setCreatorAvatarErrors] = useState<Set<string>>(new Set());
   const [deleteModalState, setDeleteModalState] = useState<{
     open: boolean;
     bioId: string;
@@ -845,6 +846,11 @@ function TeamMemberDetailContent() {
               filteredCreators.map(creator => {
                 const bioId = creator.bio?.id ?? '';
                 const checked = selectedCreators.includes(bioId);
+                const useDefaultAvatar =
+                  creatorAvatarErrors.has(bioId) ||
+                  !creator.bio?.imageURL ||
+                  (typeof creator.bio?.imageURL === 'string' && creator.bio.imageURL.trim() === '');
+                const avatarSrc = useDefaultAvatar ? DEFAULT_AVATAR : (creator.bio?.imageURL ?? DEFAULT_AVATAR);
                 return (
                   <Box
                     key={bioId}
@@ -852,11 +858,12 @@ function TeamMemberDetailContent() {
                   >
                     <Box sx={creatorAvatarStyles}>
                       <Image
-                        src={creator.bio?.imageURL || DEFAULT_AVATAR}
+                        src={avatarSrc}
                         alt={creator.bio?.pageName || 'Creator'}
                         width="48px"
                         height="48px"
                         sx={imageStyles}
+                        onError={() => setCreatorAvatarErrors(prev => new Set(prev).add(bioId))}
                       />
                     </Box>
                     <Box sx={creatorInfoStyles}>

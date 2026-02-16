@@ -303,8 +303,11 @@ export const DotGraph = ({
           {hasData ? (
             data.map((point, index) => {
               const ratio = (point.value - computedMin) / range;
-              const yPercent = 100 - ratio * 100;
-              const clampedY = Math.max(0, Math.min(100, yPercent));
+              // Use inner vertical range (5%–95%) so dots are never clipped by overflow
+              const innerTop = 5;
+              const innerBottom = 95;
+              const yPercent = innerBottom - (innerBottom - innerTop) * ratio;
+              const clampedY = Math.max(innerTop, Math.min(innerBottom, yPercent));
               const leftPercent =
                 data.length === 1 ? 50 : (index / (data.length - 1 || 1)) * 100;
 

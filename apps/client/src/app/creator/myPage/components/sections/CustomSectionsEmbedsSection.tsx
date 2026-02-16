@@ -646,7 +646,8 @@ export default function CustomSectionsEmbedsSection({
                   <Button
                     variant="primary-dark"
                     onClick={() => {
-                      if (section.sectionType === 'embeds') {
+                      const isEmbedSection = section.sectionType === 'embeds' || section.isEmbed === true;
+                      if (isEmbedSection) {
                         setSelectedSectionId(section.id);
                         setIsAddEmbedModalOpen(true);
                       } else {
@@ -658,7 +659,7 @@ export default function CustomSectionsEmbedsSection({
                     sx={addContentButtonStyles}
                   >
                     <AddIcon sx={{ fontSize: '16px' }} />
-                    {section.sectionType === 'embeds' ? 'Add Embed' : 'Add Section'}
+                    {section.sectionType === 'embeds' || section.isEmbed === true ? 'Add Embed' : 'Add Section'}
                   </Button>
                 </Box>
               )}

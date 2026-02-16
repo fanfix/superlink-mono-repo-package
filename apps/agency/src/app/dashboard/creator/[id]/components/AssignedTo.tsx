@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Box } from '@mui/material';
 import { Typography, Image } from '@superline/design-system';
 import { styled } from '@mui/material/styles';
@@ -85,18 +85,25 @@ export default function AssignedTo({ assignedTo, assignedEmail, assignedAvatar, 
     return '/assets/default-avatar.svg';
   };
 
+  const DEFAULT_AVATAR_SRC = '/assets/default-avatar.svg';
+  const [avatarErrors, setAvatarErrors] = useState<Set<string>>(new Set());
+
   return (
     <AssignedToContainer>
       <AssignedToTitle>Assigned To</AssignedToTitle>
       
-      {displayMembers.map((member, index) => (
+      {displayMembers.map((member, index) => {
+        const memberKey = (member as any).id ?? `member-${index}`;
+        const imageSrc = avatarErrors.has(memberKey) ? DEFAULT_AVATAR_SRC : getMemberImageSrc(member);
+        return (
         <AssignedToInfo 
           key={(member as any).id || index} 
           sx={{ marginBottom: index < displayMembers.length - 1 ? 'var(--padding-lg)' : 0 }}
         >
           <Image
-            src={getMemberImageSrc(member)}
+            src={imageSrc}
             alt={member.name || assignedTo}
+            onError={() => setAvatarErrors(prev => new Set(prev).add(memberKey))}
             sx={{
               width: '56px',
               height: '56px',
@@ -112,7 +119,8 @@ export default function AssignedTo({ assignedTo, assignedEmail, assignedAvatar, 
             <AssignedToEmail>{member.email || assignedEmail}</AssignedToEmail>
           </AssignedToDetails>
         </AssignedToInfo>
-      ))}
+        );
+      })}
     </AssignedToContainer>
   );
 }
